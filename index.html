@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dimataling GAD Function Hall - Redirecting...</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="js/db.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #fef8e7;
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+            color: #002b50;
+            position: relative;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('municipality.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .loader {
+            text-align: center;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #fde68a;
+            border-top: 4px solid #d97706;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader">
+        <div class="spinner"></div>
+        <h2>Dimataling GAD Function Hall</h2>
+        <p>Redirecting to portal...</p>
+    </div>
+    <script>
+        function doRedirect() {
+            try {
+                const user = (typeof DB !== 'undefined') ? DB.getCurrentUser() : null;
+                if (user && user.role === 'admin') {
+                    window.location.href = 'admin_dashboard.html';
+                } else if (user) {
+                    window.location.href = 'user_dashboard.html';
+                } else {
+                    window.location.href = 'login.html';
+                }
+            } catch (e) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            doRedirect();
+        } else {
+            document.addEventListener('DOMContentLoaded', doRedirect);
+        }
+        // Safety timeout fallback
+        setTimeout(doRedirect, 500);
+    </script>
+</body>
+</html>

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create User Account - Dimataling GAD Hall Reservation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        try {
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            "gold": {
+                                50: "#fffbebf0",
+                                100: "#fef3c7",
+                                200: "#fde68a",
+                                300: "#fcd34d",
+                                400: "#fbbf24",
+                                500: "#f59e0b",
+                                600: "#d97706",
+                                700: "#b45309",
+                                800: "#92400e"
+                            },
+                            "navy": {
+                                900: "#002b50",
+                                800: "#00355f",
+                                700: "#0f4c81",
+                                600: "#1d609b",
+                                100: "#e0f2fe"
+                            }
+                        },
+                        fontFamily: {
+                            sans: ["Inter", "sans-serif"]
+                        }
+                    }
+                }
+            }
+        } catch(_e){}
+    </script>
+    <style>
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('municipality.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .gold-border-glow {
+            box-shadow: 0 0 25px -4px rgba(245, 158, 11, 0.25);
+        }
+        .gold-btn {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        }
+        .gold-btn:hover {
+            background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d97706;
+            border-radius: 4px;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="js/db.js"></script>
+</head>
+<body class="bg-amber-50/40 text-slate-800 min-h-screen w-full flex items-center justify-center p-3 sm:p-6 font-sans relative overflow-x-hidden overflow-y-auto">
+
+<!-- Ambient Background Glows -->
+<div class="fixed inset-0 overflow-hidden -z-10 pointer-events-none">
+    <div class="absolute top-[-10%] right-[-10%] w-1/2 h-1/2 rounded-full bg-amber-200/40 blur-[140px]"></div>
+    <div class="absolute bottom-[-10%] left-[-10%] w-1/2 h-1/2 rounded-full bg-blue-200/40 blur-[140px]"></div>
+</div>
+
+<main class="relative z-10 w-full max-w-[980px] my-auto flex flex-col md:flex-row shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden bg-white border-2 border-gold-300/80 gold-border-glow my-4">
+    
+    <!-- Left Side Panel: Branding & Complete 10 Terms & Conditions -->
+    <div class="hidden md:flex md:w-5/12 bg-navy-800 p-7 flex-col justify-between relative overflow-hidden text-white shrink-0">
+        <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 mb-2">
+                <img src="dimataling-logo.png" alt="Dimataling Logo" class="w-10 h-10 object-contain rounded-full border border-gold-400 p-0.5 bg-white shadow-sm">
+                <h1 class="font-extrabold text-xl leading-tight">GAD Function Hall</h1>
+            </div>
+            <p class="text-gold-200 text-xs font-semibold uppercase tracking-wide">Dimataling Reservation System</p>
+        </div>
+
+        <div class="relative z-10 my-4">
+            <h2 class="font-bold text-sm text-gold-300 mb-2.5 flex items-center gap-2 uppercase tracking-wider">
+                <span class="material-symbols-outlined text-[18px]">gavel</span>
+                10 Terms &amp; Conditions
+            </h2>
+            <div class="max-h-[360px] overflow-y-auto pr-2 space-y-3 text-xs bg-black/20 p-4 rounded-2xl border border-gold-500/30 leading-relaxed custom-scrollbar text-slate-200">
+                <p class="font-bold text-xs text-gold-300 border-b border-gold-500/30 pb-1.5 uppercase tracking-wider">Terms and Conditions for GAD Function Hall Reservation</p>
+                <ol class="list-decimal pl-4 space-y-2.5 text-[11px]">
+                    <li>
+                        <strong>Reservation Approval:</strong> All reservation requests are subject to approval by the GAD Office or designated administrator. A reservation is confirmed only after receiving an approval notification.
+                    </li>
+                    <li>
+                        <strong>Reservation Schedule:</strong> Users must select their preferred date and time. Reservations are granted on a first-approved, first-served basis. Double booking is not allowed.
+                    </li>
+                    <li>
+                        <strong>Authorized Use:</strong> The function hall shall be used only for official municipal activities, seminars, meetings, trainings, workshops, and other approved events.
+                    </li>
+                    <li>
+                        <strong>Proper Use of Facility:</strong> Users must maintain cleanliness and order before, during, and after the event. Furniture and equipment should be used properly. Report maintenance concerns immediately.
+                    </li>
+                    <li>
+                        <strong>Time Compliance:</strong> Users must follow the approved reservation schedule. Extensions require prior approval from the administrator.
+                    </li>
+                    <li>
+                        <strong>Cancellation:</strong> Users who wish to cancel their reservation should do so as early as possible to make the schedule available to others.
+                    </li>
+                    <li>
+                        <strong>Administrator's Authority:</strong> The administrator may approve, reject, cancel, or reschedule reservations when necessary due to conflicts, emergencies, or official municipal activities.
+                    </li>
+                    <li>
+                        <strong>False Information:</strong> Providing inaccurate or misleading information during registration or reservation may result in the rejection or cancellation of the request.
+                    </li>
+                    <li>
+                        <strong>Privacy:</strong> Personal information collected during registration and reservation will be used only for reservation management and handled in accordance with applicable data privacy regulations.
+                    </li>
+                    <li>
+                        <strong>Acceptance:</strong> By submitting a reservation request, the user acknowledges that they have read, understood, and agreed to these Terms and Conditions.
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="relative z-10 pt-2 border-t border-navy-700 text-center">
+            <p class="text-[11px] font-black text-gold-300 uppercase tracking-wide">
+                Developed by ZDSPGC DIMATALING STUDENTS
+            </p>
+        </div>
+    </div>
+
+    <!-- Right Side: Registration Form -->
+    <div class="flex-1 p-6 md:p-8 overflow-y-auto">
+        <header class="mb-5">
+            <div class="h-1.5 w-20 bg-gradient-to-r from-gold-500 to-navy-800 rounded-full mb-3"></div>
+            <h2 class="font-extrabold text-2xl text-navy-800 mb-1">Create User Account</h2>
+            <p class="text-xs text-slate-600">Fill in your information to register as an authorized hall reserving user.</p>
+        </header>
+
+        <div id="alertBox" class="hidden mb-4 p-3 rounded-xl text-xs flex items-start gap-2 shadow-sm"></div>
+
+        <form id="registration-form" class="space-y-4">
+            
+            <!-- Profile Picture Upload -->
+            <div class="flex flex-col items-center mb-3">
+                <div class="relative group">
+                    <div class="w-16 h-16 rounded-full border-2 border-dashed border-gold-400/70 flex items-center justify-center overflow-hidden bg-amber-50/50 transition-colors group-hover:border-gold-600">
+                        <span id="avatar-preview" class="material-symbols-outlined text-gold-600 text-2xl">add_a_photo</span>
+                        <img id="avatar-img" class="absolute inset-0 w-full h-full object-cover hidden" src="" alt="Avatar preview">
+                    </div>
+                    <input type="file" id="profile-picture" accept="image/*" class="hidden">
+                    <button type="button" onclick="document.getElementById('profile-picture').click()" class="absolute -bottom-1 -right-1 bg-navy-800 text-gold-400 p-1 rounded-full shadow hover:scale-105 transition-transform border border-gold-400">
+                        <span class="material-symbols-outlined text-xs">edit</span>
+                    </button>
+                </div>
+                <label class="text-[10px] font-bold text-navy-800 uppercase tracking-wider mt-1.5">Profile Picture (Optional)</label>
+            </div>
+
+            <!-- Form Fields Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                
+                <!-- Full Name -->
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black text-navy-900 uppercase tracking-wider block" for="full-name">Full Name *</label>
+                    <input type="text" id="full-name" required placeholder="Alfredo Selaras" class="w-full h-[40px] px-3.5 rounded-xl border-2 border-slate-300 text-slate-900 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 text-xs font-semibold bg-white shadow-sm">
+                </div>
+
+                <!-- Department -->
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black text-navy-900 uppercase tracking-wider block" for="department">Department *</label>
+                    <select id="department" required class="w-full h-[40px] px-3.5 rounded-xl border-2 border-slate-300 text-slate-900 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 text-xs font-semibold bg-white shadow-sm">
+                        <option value="">Select Department</option>
+                        <option value="Administrative Office">Administrative Office</option>
+                        <option value="Municipal Mayor's Office">Municipal Mayor's Office</option>
+                        <option value="Human Resource and Management Office">Human Resource and Management Office</option>
+                        <option value="Municipal Engineering Office">Municipal Engineering Office</option>
+                        <option value="Municipal Budget Office">Municipal Budget Office</option>
+                        <option value="Municipal Accounting Office">Municipal Accounting Office</option>
+                        <option value="Municipal Treasure's Office">Municipal Treasure's Office</option>
+                        <option value="Municipal Economic Enterprises Development Office">Municipal Economic Enterprises Development Office</option>
+                        <option value="Dimataling Water System">Dimataling Water System</option>
+                        <option value="Business Permit and Licensing Office">Business Permit and Licensing Office</option>
+                        <option value="General Services Office">General Services Office</option>
+                        <option value="Municipal Assessor's Office">Municipal Assessor's Office</option>
+                        <option value="Municipal Civil Registrar">Municipal Civil Registrar</option>
+                        <option value="Municipal Planning and Development Coordinator">Municipal Planning and Development Coordinator</option>
+                        <option value="Municipal Tourism Office">Municipal Tourism Office</option>
+                        <option value="Municipal Social Welfare and Development Office">Municipal Social Welfare and Development Office</option>
+                        <option value="Municipal Disaster Risk Reduction and Management Office">Municipal Disaster Risk Reduction and Management Office</option>
+                        <option value="Local Youth Development Office">Local Youth Development Office</option>
+                        <option value="Vice-Mayor's Office">Vice-Mayor's Office</option>
+                        <option value="Municipal Health Office">Municipal Health Office</option>
+                        <option value="Municipal Agriculture's Office">Municipal Agriculture's Office</option>
+                        <option value="COMELEC">COMELEC</option>
+                        <option value="DAR">DAR</option>
+                        <option value="DILG">DILG</option>
+                        <option value="PNP">PNP</option>
+                        <option value="BFP">BFP</option>
+                    </select>
+                </div>
+
+                <!-- Email -->
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black text-navy-900 uppercase tracking-wider block" for="email">Email Address *</label>
+                    <input type="email" id="email" required placeholder="Densio@gmail.com" class="w-full h-[40px] px-3.5 rounded-xl border-2 border-slate-300 text-slate-900 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 text-xs font-semibold bg-white shadow-sm">
+                </div>
+
+                <!-- Username -->
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black text-navy-900 uppercase tracking-wider block" for="username">Username *</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gold-600 text-[18px]">person</span>
+                        <input type="text" id="username" required placeholder="Densio" class="w-full h-[40px] pl-9 pr-3.5 rounded-xl border-2 border-slate-300 text-slate-900 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 text-xs font-semibold bg-white shadow-sm">
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black text-navy-900 uppercase tracking-wider block" for="password">Password (Min. 8 chars) *</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gold-600 text-[18px]">lock</span>
+                        <input type="password" id="password" required minlength="8" placeholder="Min. 8 characters" class="w-full h-[40px] pl-9 pr-10 rounded-xl border-2 border-slate-300 text-slate-900 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 text-xs font-semibold bg-white shadow-sm">
+                        <button type="button" onclick="togglePasswordVisibility('password')" class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-slate-400 hover:text-gold-600 cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]" id="icon-password">visibility_off</span>
+                        </button>
+                    </div>
+                    <!-- Strength Meter Bar -->
+                    <div class="mt-1 space-y-0.5">
+                        <div class="flex gap-1 h-1 w-full">
+                            <div id="strength-1" class="h-full flex-1 bg-slate-200 rounded-full transition-colors"></div>
+                            <div id="strength-2" class="h-full flex-1 bg-slate-200 rounded-full transition-colors"></div>
+                            <div id="strength-3" class="h-full flex-1 bg-slate-200 rounded-full transition-colors"></div>
+                            <div id="strength-4" class="h-full flex-1 bg-slate-200 rounded-full transition-colors"></div>
+                        </div>
+                        <p id="strength-text" class="text-[9px] text-slate-600 font-semibold">Minimum 8 characters required</p>
+                    </div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black text-navy-900 uppercase tracking-wider block" for="confirm-password">Confirm Password *</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gold-600 text-[18px]">lock_reset</span>
+                        <input type="password" id="confirm-password" required minlength="8" placeholder="Re-enter password" class="w-full h-[40px] pl-9 pr-10 rounded-xl border-2 border-slate-300 text-slate-900 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 text-xs font-semibold bg-white shadow-sm">
+                        <button type="button" onclick="togglePasswordVisibility('confirm-password')" class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-slate-400 hover:text-gold-600 cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]" id="icon-confirm-password">visibility_off</span>
+                        </button>
+                    </div>
+                    <p id="match-text" class="text-[9px] text-slate-600 font-semibold opacity-0">Passwords must match</p>
+                </div>
+            </div>
+
+            <!-- Agreement Checkbox -->
+            <div class="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50/70 border border-gold-300 mt-2">
+                <input id="agreement-checkbox" type="checkbox" required class="w-4 h-4 mt-0.5 rounded border-slate-300 text-gold-600 focus:ring-gold-400 cursor-pointer">
+                <label for="agreement-checkbox" class="text-xs text-slate-700 cursor-pointer leading-snug">
+                    I have read, understood, and agree to abide by all the <strong>10 Terms &amp; Conditions</strong> of the Municipality GAD Function Hall Reservation Agreement.
+                </label>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="pt-3 flex flex-col sm:flex-row items-center gap-3 justify-between border-t border-slate-100 mt-2">
+                <button type="submit" id="submitBtn" class="w-full sm:w-auto px-7 h-[44px] gold-btn text-white font-bold text-xs rounded-xl shadow-md hover:shadow-gold-500/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>Register Account</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+                
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <a href="login.html" class="w-full sm:w-auto px-6 h-[44px] border-2 border-navy-800 text-navy-800 font-extrabold text-xs rounded-xl hover:bg-navy-800 hover:text-white transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">login</span>
+                        <span>Already have an account? Log In</span>
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <!-- Mobile Footer Note -->
+        <div class="mt-5 pt-3 border-t border-gold-200 text-center block md:hidden">
+            <p class="text-[11px] font-black text-navy-800 uppercase tracking-wide">
+                Developed by ZDSPGC DIMATALING STUDENTS
+            </p>
+        </div>
+    </div>
+</main>
+
+<script>
+    let avatarBase64 = '';
+
+    function togglePasswordVisibility(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById('icon-' + inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.innerText = 'visibility';
+        } else {
+            input.type = 'password';
+            icon.innerText = 'visibility_off';
+        }
+    }
+
+    // Password Strength Meter
+    const passwordInput = document.getElementById('password');
+    const strengthBars = [
+        document.getElementById('strength-1'),
+        document.getElementById('strength-2'),
+        document.getElementById('strength-3'),
+        document.getElementById('strength-4')
+    ];
+    const strengthText = document.getElementById('strength-text');
+
+    passwordInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        let score = 0;
+        if (val.length >= 8) score++;
+        if (val.match(/[A-Z]/)) score++;
+        if (val.match(/[0-9]/)) score++;
+        if (val.match(/[^A-Za-z0-9]/)) score++;
+
+        strengthBars.forEach((bar, idx) => {
+            if (idx < score) {
+                if (score === 1) bar.className = 'h-full flex-1 bg-red-500 rounded-full transition-colors';
+                else if (score === 2) bar.className = 'h-full flex-1 bg-amber-500 rounded-full transition-colors';
+                else if (score === 3) bar.className = 'h-full flex-1 bg-blue-500 rounded-full transition-colors';
+                else bar.className = 'h-full flex-1 bg-emerald-600 rounded-full transition-colors';
+            } else {
+                bar.className = 'h-full flex-1 bg-slate-200 rounded-full transition-colors';
+            }
+        });
+
+        const texts = ['Too short (< 8 chars)', 'Weak', 'Fair', 'Good', 'Strong'];
+        strengthText.innerText = val.length === 0 ? 'Minimum 8 characters required' : (texts[score] || 'Password strength');
+        strengthText.style.color = score === 0 ? '' : (score < 3 ? '#ba1a1a' : '#002b50');
+    });
+
+    // Password Match
+    const confirmInput = document.getElementById('confirm-password');
+    const matchText = document.getElementById('match-text');
+
+    const validateMatch = () => {
+        if (confirmInput.value === '') {
+            matchText.classList.add('opacity-0');
+        } else if (confirmInput.value === passwordInput.value) {
+            matchText.innerText = 'Passwords match';
+            matchText.classList.remove('opacity-0');
+            matchText.className = 'text-[9px] text-emerald-600 font-bold';
+        } else {
+            matchText.innerText = 'Passwords do not match';
+            matchText.classList.remove('opacity-0');
+            matchText.className = 'text-[9px] text-red-600 font-bold';
+        }
+    };
+
+    confirmInput.addEventListener('input', validateMatch);
+    passwordInput.addEventListener('input', validateMatch);
+
+    // Profile Avatar Preview with Fast Image Compression
+    document.getElementById('profile-picture').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            DB.compressImage(file, 250, 0.7, function(compressedData) {
+                avatarBase64 = compressedData;
+                const avatarImg = document.getElementById('avatar-img');
+                avatarImg.src = avatarBase64;
+                avatarImg.classList.remove('hidden');
+                document.getElementById('avatar-preview').classList.add('hidden');
+            });
+        }
+    });
+
+    function showAlert(message, isError = true) {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.classList.remove('hidden', 'bg-red-50', 'border-red-200', 'text-red-700', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+        
+        if (isError) {
+            alertBox.classList.add('bg-red-50', 'border', 'border-red-200', 'text-red-700');
+            alertBox.innerHTML = `<span class="material-symbols-outlined text-red-600 shrink-0 text-base">error</span><div>${message}</div>`;
+        } else {
+            alertBox.classList.add('bg-emerald-50', 'border', 'border-emerald-200', 'text-emerald-800');
+            alertBox.innerHTML = `<span class="material-symbols-outlined text-emerald-600 shrink-0 text-base">check_circle</span><div>${message}</div>`;
+        }
+    }
+
+    document.getElementById('registration-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (passwordInput.value.length < 8) {
+            showAlert('Password must be at least 8 characters long.', true);
+            return;
+        }
+
+        if (passwordInput.value !== confirmInput.value) {
+            showAlert('Passwords do not match.', true);
+            return;
+        }
+
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-xs">progress_activity</span> <span>Registering...</span>';
+
+        const userData = {
+            full_name: document.getElementById('full-name').value.trim(),
+            department: document.getElementById('department').value,
+            email: document.getElementById('email').value.trim(),
+            contact: '',
+            username: document.getElementById('username').value.trim(),
+            password: passwordInput.value,
+            profile_picture: avatarBase64
+        };
+
+        requestAnimationFrame(() => {
+            const res = DB.register(userData);
+            if (res.success) {
+                showAlert('Account registered successfully! Redirecting to login page...', false);
+                setTimeout(() => {
+                    window.location.href = `login.html?registered=true&username=${encodeURIComponent(userData.username)}`;
+                }, 300);
+            } else {
+                showAlert(res.error, true);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Register Account</span><span class="material-symbols-outlined text-sm">arrow_forward</span>';
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Dimataling GAD Hall - User Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        try {
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            "gold": {
+                                50: "#fffbebf0",
+                                100: "#fef3c7",
+                                200: "#fde68a",
+                                300: "#fcd34d",
+                                400: "#fbbf24",
+                                500: "#f59e0b",
+                                600: "#d97706",
+                                700: "#b45309",
+                                800: "#92400e"
+                            },
+                            "navy": {
+                                900: "#002b50",
+                                800: "#00355f",
+                                700: "#0f4c81",
+                                600: "#1d609b",
+                                100: "#e0f2fe"
+                            }
+                        },
+                        fontFamily: {
+                            sans: ["Inter", "sans-serif"]
+                        }
+                    }
+                }
+            }
+        } catch(_e){}
+    </script>
+    <style>
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('municipality.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .gold-border-glow {
+            box-shadow: 0 0 20px -3px rgba(245, 158, 11, 0.25);
+        }
+        .gold-btn {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        }
+        .gold-btn:hover {
+            background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d97706;
+            border-radius: 4px;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="js/db.js"></script>
+</head>
+<body class="bg-amber-50/40 text-slate-800 font-sans min-h-screen relative overflow-x-hidden">
+
+<!-- Ambient Background Glows -->
+<div class="fixed inset-0 overflow-hidden -z-10 pointer-events-none">
+    <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-amber-200/40 rounded-full blur-[140px]"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-200/40 rounded-full blur-[140px]"></div>
+</div>
+
+<!-- Header Top Navigation Bar -->
+<header class="fixed top-0 right-0 left-0 h-16 bg-navy-800 text-white border-b-2 border-gold-400 flex justify-between items-center px-3 sm:px-6 md:px-8 z-40 shadow-lg">
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0 pr-2">
+        <img src="dimataling-logo.png" alt="Dimataling Logo" class="w-8 h-8 sm:w-9 sm:h-9 object-contain rounded-xl border-2 border-gold-400 bg-white p-0.5 shadow-md shrink-0">
+        <div class="min-w-0">
+            <h2 class="text-xs sm:text-base md:text-lg font-black text-white leading-tight truncate">Dimataling GAD Function Hall</h2>
+            <p class="text-[9px] sm:text-[10px] font-bold text-gold-300 uppercase tracking-wide hidden sm:block">User Access Portal</p>
+        </div>
+    </div>
+    
+    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div id="adminPanelLink" class="hidden">
+            <a href="admin_dashboard.html" class="flex items-center gap-1 px-2.5 py-1.5 sm:px-4 sm:py-2 gold-btn text-white font-black text-xs rounded-xl hover:shadow-gold-500/50 transition-all shadow-md border border-gold-400 cursor-pointer">
+                <span class="material-symbols-outlined text-sm">admin_panel_settings</span> <span class="hidden sm:inline">Admin Panel</span>
+            </a>
+        </div>
+        
+        <div class="flex items-center gap-2 sm:gap-3 border-l border-navy-700 pl-2 sm:pl-4">
+            <div class="text-right hidden md:block">
+                <p id="headerUserName" class="text-xs font-bold text-white leading-tight">User</p>
+                <p id="headerUserDept" class="text-[10px] font-semibold text-gold-300">Department</p>
+            </div>
+            <button onclick="DB.logout()" class="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 border border-red-500 text-white font-extrabold text-xs rounded-xl transition-all shadow-md cursor-pointer" title="Log out of application">
+                <span class="material-symbols-outlined text-sm">logout</span>
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Main Dashboard Content -->
+<main class="relative z-10 mt-16 p-3 sm:p-6 md:p-8 max-w-[1440px] mx-auto min-h-[calc(100vh-4rem)] flex flex-col justify-between">
+    
+    <div>
+        <!-- Feedback Banner -->
+        <div id="feedbackBanner" class="hidden mb-6 p-3.5 rounded-2xl text-xs font-medium flex items-center justify-between shadow-md">
+            <div class="flex items-center gap-2" id="feedbackMessage"></div>
+            <button onclick="document.getElementById('feedbackBanner').classList.add('hidden')" class="hover:opacity-75"><span class="material-symbols-outlined text-sm">close</span></button>
+        </div>
+
+        <!-- Welcome Banner & New Request Button -->
+        <div class="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-white border-2 border-gold-300/80 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-lg gold-border-glow">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100/80 border border-gold-300 text-navy-800 text-xs font-extrabold uppercase mb-2">
+                    <span class="w-2 h-2 rounded-full bg-gold-600 animate-pulse"></span> Reserver Account Active
+                </div>
+                <h1 id="welcomeUser" class="text-xl sm:text-2xl md:text-3xl font-black text-navy-800 tracking-tight">Welcome</h1>
+                <p class="text-xs font-semibold text-slate-600 mt-1">Department: <strong id="welcomeDept" class="text-gold-700">Department</strong> • Manage hall bookings & track approval statuses.</p>
+            </div>
+            <button onclick="openReservationModal()" class="w-full sm:w-auto gold-btn text-white px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl font-bold text-xs shadow-xl hover:shadow-gold-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 shrink-0 border border-gold-400 cursor-pointer">
+                <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">calendar_add_on</span>
+                <span>New Reservation Request</span>
+            </button>
+        </div>
+
+        <!-- Dashboard Layout Grid -->
+        <div class="grid grid-cols-12 gap-6">
+            
+            <!-- Left Side: Stats & Reservation History (Col 8) -->
+            <div class="col-span-12 lg:col-span-8 space-y-6">
+                
+                <!-- Stats Badges Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    
+                    <!-- Pending -->
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border-2 border-amber-300 shadow-sm flex flex-col justify-between border-l-4 border-l-gold-500">
+                        <div class="flex justify-between items-start">
+                            <span class="material-symbols-outlined text-gold-600 text-2xl">pending_actions</span>
+                            <span class="bg-amber-100 text-gold-800 text-[10px] px-2 py-0.5 rounded-md font-extrabold uppercase">Pending</span>
+                        </div>
+                        <div class="mt-3 flex justify-between items-end">
+                            <div>
+                                <p id="statPending" class="text-2xl sm:text-3xl font-black text-navy-800">00</p>
+                                <p class="text-[11px] font-semibold text-slate-500">Review Required</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Approved -->
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border-2 border-emerald-200 shadow-sm flex flex-col justify-between border-l-4 border-l-emerald-500">
+                        <div class="flex justify-between items-start">
+                            <span class="material-symbols-outlined text-emerald-600 text-2xl">check_circle</span>
+                            <span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-md font-extrabold uppercase">Approved</span>
+                        </div>
+                        <div class="mt-3 flex justify-between items-end">
+                            <div>
+                                <p id="statApproved" class="text-2xl sm:text-3xl font-black text-navy-800">00</p>
+                                <p class="text-[11px] font-semibold text-slate-500">Confirmed Bookings</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rejected -->
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border-2 border-red-200 shadow-sm flex flex-col justify-between border-l-4 border-l-red-500">
+                        <div class="flex justify-between items-start">
+                            <span class="material-symbols-outlined text-red-600 text-2xl">cancel</span>
+                            <span class="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-md font-extrabold uppercase">Rejected</span>
+                        </div>
+                        <div class="mt-3 flex justify-between items-end">
+                            <div>
+                                <p id="statRejected" class="text-2xl sm:text-3xl font-black text-navy-800">00</p>
+                                <p class="text-[11px] font-semibold text-slate-500">Declined Requests</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cancelled -->
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col justify-between border-l-4 border-l-slate-400">
+                        <div class="flex justify-between items-start">
+                            <span class="material-symbols-outlined text-slate-500 text-2xl">block</span>
+                            <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-md font-extrabold uppercase">Cancelled</span>
+                        </div>
+                        <div class="mt-3 flex justify-between items-end">
+                            <div>
+                                <p id="statCancelled" class="text-2xl sm:text-3xl font-black text-navy-800">00</p>
+                                <p class="text-[11px] font-semibold text-slate-500">User Rescinded</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Reservation History Card -->
+                <div class="bg-white rounded-3xl border-2 border-gold-300/80 shadow-lg overflow-hidden">
+                    <div class="px-6 py-4 border-b border-amber-200 flex flex-wrap justify-between items-center bg-amber-50/60 gap-2">
+                        <h3 class="font-black text-sm text-navy-800 flex items-center gap-2 uppercase tracking-wide">
+                            <span class="material-symbols-outlined text-gold-600 text-[20px]">history</span>
+                            My Reservation History
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span id="historyTotalBadge" class="text-xs font-bold text-gold-700 bg-amber-100 border border-gold-300 px-3 py-1 rounded-full">Total: 0</span>
+                            <button onclick="clearReservationHistory()" class="px-3 py-1 text-xs font-extrabold text-red-700 hover:text-white bg-red-100 hover:bg-red-600 border border-red-300 rounded-full transition-colors flex items-center gap-1 cursor-pointer shadow-sm">
+                                <span class="material-symbols-outlined text-xs">delete_sweep</span>
+                                <span>Clear Records</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="reservationHistoryContainer" class="divide-y divide-amber-100">
+                        <!-- Dynamic History Rows rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Approved Meetings History Card -->
+                <div class="bg-white rounded-3xl border-2 border-gold-300/80 shadow-lg overflow-hidden">
+                    <div class="px-6 py-4 border-b border-amber-200 flex flex-wrap justify-between items-center bg-amber-50/60 gap-2">
+                        <h3 class="font-black text-sm text-navy-800 flex items-center gap-2 uppercase tracking-wide">
+                            <span class="material-symbols-outlined text-gold-600 text-[20px]">event_available</span>
+                            Approved Meetings History
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span id="approvedTotalBadge" class="text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-full">Approved: 0</span>
+                            <button onclick="exportApprovedHistoryCSV()" class="px-3 py-1 text-xs font-extrabold text-white gold-btn border border-gold-600 rounded-full transition-colors flex items-center gap-1 cursor-pointer shadow-sm" title="Export Approved Meetings CSV (Ascending Order)">
+                                <span class="material-symbols-outlined text-xs">download</span>
+                                <span>Export CSV</span>
+                            </button>
+                            <button onclick="clearApprovedHistory()" class="px-3 py-1 text-xs font-extrabold text-red-700 hover:text-white bg-red-100 hover:bg-red-600 border border-red-300 rounded-full transition-colors flex items-center gap-1 cursor-pointer shadow-sm">
+                                <span class="material-symbols-outlined text-xs">delete_sweep</span>
+                                <span>Clear Approved</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="approvedMeetingsContainer" class="divide-y divide-amber-100">
+                        <!-- Dynamic Approved Meetings rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Terms and Conditions Card -->
+                <div class="bg-white rounded-3xl border-2 border-gold-300/80 p-6 shadow-lg">
+                    <h3 class="font-extrabold text-sm text-navy-800 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                        <span class="material-symbols-outlined text-gold-600 text-[20px]">gavel</span>
+                        Terms and Conditions for GAD Function Hall Reservation
+                    </h3>
+                    <div class="text-xs text-slate-600 space-y-2.5 max-h-56 overflow-y-auto pr-2 custom-scrollbar bg-amber-50/50 p-4 rounded-2xl border border-gold-300">
+                        <ol class="list-decimal pl-4 space-y-2 text-[11px]">
+                            <li><strong>Reservation Approval:</strong> All reservation requests are subject to approval by the GAD Office or designated administrator. A reservation is confirmed only after receiving an approval notification.</li>
+                            <li><strong>Reservation Schedule:</strong> Users must select their preferred date and time. Reservations are granted on a first-approved, first-served basis. Double booking is not allowed.</li>
+                            <li><strong>Authorized Use:</strong> The function hall shall be used only for official municipal activities, seminars, meetings, trainings, workshops, and other approved events.</li>
+                            <li><strong>Proper Use of Facility:</strong> Users must maintain cleanliness and order before, during, and after the event. Furniture and equipment should be used properly. Report issues immediately.</li>
+                            <li><strong>Time Compliance:</strong> Users must follow the approved reservation schedule. Extensions require prior approval from the administrator.</li>
+                            <li><strong>Cancellation:</strong> Users who wish to cancel their reservation should do so as early as possible to make the schedule available to others.</li>
+                            <li><strong>Administrator's Authority:</strong> The administrator may approve, reject, cancel, or reschedule reservations when necessary due to conflicts, emergencies, or official municipal activities.</li>
+                            <li><strong>False Information:</strong> Providing inaccurate or misleading information during registration or reservation may result in rejection or cancellation.</li>
+                            <li><strong>Privacy:</strong> Personal information collected will be used only for reservation management and handled in accordance with data privacy regulations.</li>
+                            <li><strong>Acceptance:</strong> By submitting a reservation request, the user acknowledges that they have read, understood, and agreed to these Terms and Conditions.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: User Profile & Schedule Peek (Col 4) -->
+            <div class="col-span-12 lg:col-span-4 space-y-6">
+                
+                <!-- User Profile Card -->
+                <div class="bg-white rounded-3xl p-6 border-2 border-gold-300/80 shadow-lg text-center relative overflow-hidden">
+                    <div id="profileAvatarBox" class="w-20 h-20 rounded-full border-4 border-amber-200 shadow-md mx-auto mb-3 overflow-hidden bg-navy-800 text-gold-400 flex items-center justify-center font-black text-2xl">
+                        <!-- Dynamic Avatar -->
+                    </div>
+                    <h3 id="profileFullName" class="font-extrabold text-lg text-navy-800 leading-tight">User Name</h3>
+                    <p id="profileDepartment" class="text-xs font-semibold text-gold-700 mt-0.5">Department</p>
+                    <span id="profileRoleBadge" class="inline-block mt-2 px-3 py-0.5 rounded-full bg-navy-800 text-gold-400 text-[10px] font-extrabold uppercase border border-gold-400/50">USER ACCOUNT</span>
+
+                    <button onclick="openProfileModal()" class="w-full mt-5 py-2.5 bg-amber-50 hover:bg-gold-500 hover:text-white text-navy-800 font-extrabold text-xs rounded-xl border-2 border-gold-400 transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                        <span class="material-symbols-outlined text-base">person_edit</span>
+                        <span>Edit Profile Details</span>
+                    </button>
+                </div>
+
+                <!-- Calendar Peek Widget -->
+                <div class="bg-white rounded-3xl p-6 border-2 border-gold-300/80 shadow-lg">
+                    <div class="flex justify-between items-center mb-4 border-b border-amber-200 pb-3">
+                        <h3 class="font-extrabold text-xs text-navy-800 flex items-center gap-2 uppercase tracking-wide">
+                            <span class="material-symbols-outlined text-gold-600 text-[18px]">calendar_month</span>
+                            Upcoming Hall Schedule
+                        </h3>
+                    </div>
+
+                    <div id="upcomingScheduleContainer" class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        <!-- Dynamic Schedule Items rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Official Required Footer Section -->
+    <footer class="mt-12 py-5 border-t-2 border-gold-300/70 text-center bg-white/70 backdrop-blur-sm rounded-3xl shadow-sm border border-gold-200">
+        <p class="text-xs font-black text-navy-800 tracking-wider uppercase">
+            Developed by ZDSPGC DIMATALING STUDENTS
+        </p>
+        <p class="text-[10px] font-semibold text-gold-700 mt-1">
+            Dimataling Municipality GAD Function Hall Reservation System &copy; 2026
+        </p>
+    </footer>
+</main>
+
+<!-- New Reservation Request Modal -->
+<div id="reservationModal" class="fixed inset-0 z-50 bg-navy-900/70 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-2xl border-2 border-gold-400 space-y-4 gold-border-glow max-h-[90vh] overflow-y-auto custom-scrollbar my-auto">
+        <div class="flex justify-between items-center border-b border-amber-200 pb-3">
+            <h3 class="font-extrabold text-sm sm:text-base text-navy-800 flex items-center gap-2 uppercase tracking-wide">
+                <span class="material-symbols-outlined text-gold-600">edit_calendar</span>
+                New Hall Reservation Request
+            </h3>
+            <button onclick="closeReservationModal()" class="text-slate-400 hover:text-navy-800 p-1 cursor-pointer"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <form id="newReservationForm" class="space-y-3.5">
+            <div>
+                <label class="block text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-1">Event Title *</label>
+                <input type="text" id="res-event-title" required placeholder="e.g. HR Gender Sensitivity Workshop" class="w-full h-10 px-3 rounded-xl border-2 border-slate-200 text-xs font-medium focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-slate-50/60">
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-1">Reserving Department *</label>
+                <input type="text" id="res-department" readonly class="w-full h-10 px-3 rounded-xl border-2 border-slate-200 text-xs font-medium bg-slate-100 text-slate-700">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div>
+                    <label class="block text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-1">Date *</label>
+                    <input type="date" id="res-date" required class="w-full h-10 px-2 rounded-xl border-2 border-slate-200 text-xs font-medium focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-slate-50/60">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-1">Start Time *</label>
+                    <input type="time" id="res-start-time" required class="w-full h-10 px-2 rounded-xl border-2 border-slate-200 text-xs font-medium focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-slate-50/60">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-1">End Time *</label>
+                    <input type="time" id="res-end-time" required class="w-full h-10 px-2 rounded-xl border-2 border-slate-200 text-xs font-medium focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-slate-50/60">
+                </div>
+            </div>
+
+            <div class="flex items-start gap-2.5 bg-amber-50 p-3 rounded-xl border border-gold-300">
+                <input type="checkbox" id="modal-agree" required class="mt-0.5 w-4 h-4 text-gold-600 rounded border-slate-300 focus:ring-gold-400 cursor-pointer">
+                <label for="modal-agree" class="text-xs text-slate-700 cursor-pointer leading-snug">
+                    I certify that I have read and agree to comply with the <strong>Terms and Conditions for GAD Function Hall Reservation</strong>.
+                </label>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3 border-t border-amber-200">
+                <button type="button" onclick="closeReservationModal()" class="px-4 py-2 text-xs font-bold text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer">Cancel</button>
+                <button type="submit" class="px-6 py-2.5 gold-btn text-white font-bold text-xs rounded-xl shadow-md border border-gold-400 hover:shadow-gold-500/20 cursor-pointer flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm">send</span>
+                    <span>Submit Request</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div id="profileModal" class="fixed inset-0 z-50 bg-navy-900/70 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full p-4 sm:p-6 shadow-2xl border-2 border-gold-400 space-y-4 gold-border-glow max-h-[90vh] overflow-y-auto custom-scrollbar my-auto">
+        <div class="flex justify-between items-center border-b border-amber-200 pb-3">
+            <h3 class="font-extrabold text-base text-navy-800 flex items-center gap-2 uppercase tracking-wide">
+                <span class="material-symbols-outlined text-gold-600">person_edit</span>
+                Edit Profile Information
+            </h3>
+            <button onclick="closeProfileModal()" class="text-slate-400 hover:text-navy-800 p-1 cursor-pointer"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <form id="editProfileForm" class="space-y-3">
+            <!-- Profile Picture Upload Widget -->
+            <div class="flex flex-col items-center mb-2">
+                <div class="relative group">
+                    <div onclick="document.getElementById('edit-profile-picture').click()" class="w-20 h-20 rounded-full border-2 border-dashed border-gold-400 flex items-center justify-center overflow-hidden bg-amber-50 shadow-inner cursor-pointer hover:border-gold-600 transition-colors">
+                        <img id="edit-avatar-img" class="w-full h-full object-cover hidden" src="" alt="Avatar">
+                        <span id="edit-avatar-preview" class="material-symbols-outlined text-gold-600 text-3xl">add_a_photo</span>
+                    </div>
+                    <input type="file" id="edit-profile-picture" accept="image/*" class="hidden">
+                    <button type="button" onclick="document.getElementById('edit-profile-picture').click()" class="absolute -bottom-1 -right-1 bg-navy-800 text-gold-400 p-1.5 rounded-full shadow hover:scale-105 transition-transform border border-gold-400 cursor-pointer">
+                        <span class="material-symbols-outlined text-xs">photo_camera</span>
+                    </button>
+                </div>
+                <label class="text-[10px] font-bold text-navy-800 uppercase tracking-wider mt-1.5 cursor-pointer" onclick="document.getElementById('edit-profile-picture').click()">Change Profile Picture</label>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-1">Full Name *</label>
+                <input type="text" id="edit-full-name" required class="w-full h-10 px-3 rounded-xl border-2 border-slate-200 text-xs font-medium focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-slate-50/60">
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-1">Department *</label>
+                <select id="edit-department" required class="w-full h-10 px-3 rounded-xl border-2 border-slate-200 text-xs font-medium bg-slate-50/60 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20">
+                    <option value="Administrative Office">Administrative Office</option>
+                    <option value="Municipal Mayor's Office">Municipal Mayor's Office</option>
+                    <option value="Human Resource and Management Office">Human Resource and Management Office</option>
+                    <option value="Municipal Engineering Office">Municipal Engineering Office</option>
+                    <option value="Municipal Budget Office">Municipal Budget Office</option>
+                    <option value="Municipal Accounting Office">Municipal Accounting Office</option>
+                    <option value="Municipal Treasure's Office">Municipal Treasure's Office</option>
+                    <option value="Municipal Economic Enterprises Development Office">Municipal Economic Enterprises Development Office</option>
+                    <option value="Dimataling Water System">Dimataling Water System</option>
+                    <option value="Business Permit and Licensing Office">Business Permit and Licensing Office</option>
+                    <option value="General Services Office">General Services Office</option>
+                    <option value="Municipal Assessor's Office">Municipal Assessor's Office</option>
+                    <option value="Municipal Civil Registrar">Municipal Civil Registrar</option>
+                    <option value="Municipal Planning and Development Coordinator">Municipal Planning and Development Coordinator</option>
+                    <option value="Municipal Tourism Office">Municipal Tourism Office</option>
+                    <option value="Municipal Social Welfare and Development Office">Municipal Social Welfare and Development Office</option>
+                    <option value="Municipal Disaster Risk Reduction and Management Office">Municipal Disaster Risk Reduction and Management Office</option>
+                    <option value="Local Youth Development Office">Local Youth Development Office</option>
+                    <option value="Vice-Mayor's Office">Vice-Mayor's Office</option>
+                    <option value="Municipal Health Office">Municipal Health Office</option>
+                    <option value="Municipal Agriculture's Office">Municipal Agriculture's Office</option>
+                    <option value="COMELEC">COMELEC</option>
+                    <option value="DAR">DAR</option>
+                    <option value="DILG">DILG</option>
+                    <option value="PNP">PNP</option>
+                    <option value="BFP">BFP</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-1">Contact Phone *</label>
+                <input type="text" id="edit-contact" required class="w-full h-10 px-3 rounded-xl border-2 border-slate-200 text-xs font-medium focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-slate-50/60">
+            </div>
+
+            <div class="pt-2 mt-2">
+                <p class="text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-2 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-gold-600">lock_reset</span> Change Password <span class="text-slate-400 normal-case font-medium tracking-normal">(Leave blank to keep current)</span></p>
+                <div class="space-y-2">
+                    <div class="relative">
+                        <input type="password" id="edit-password" placeholder="New Password" class="w-full h-10 px-3 pr-10 rounded-xl border-2 border-slate-200 text-xs font-medium focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-slate-50/60">
+                        <button type="button" onclick="togglePasswordVisibility('edit-password')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-gold-600 cursor-pointer">
+                            <span class="material-symbols-outlined text-base" id="icon-edit-password">visibility_off</span>
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <input type="password" id="edit-confirm-password" placeholder="Confirm New Password" class="w-full h-10 px-3 pr-10 rounded-xl border-2 border-slate-200 text-xs font-medium focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-slate-50/60">
+                        <button type="button" onclick="togglePasswordVisibility('edit-confirm-password')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-gold-600 cursor-pointer">
+                            <span class="material-symbols-outlined text-base" id="icon-edit-confirm-password">visibility_off</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3 border-t border-amber-200">
+                <button type="button" onclick="closeProfileModal()" class="px-4 py-2 text-xs font-bold text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer">Cancel</button>
+                <button type="submit" id="saveProfileBtn" class="px-6 py-2.5 gold-btn text-white font-bold text-xs rounded-xl shadow-md border border-gold-400 hover:shadow-gold-500/20 cursor-pointer transition-transform active:scale-95 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm">save</span>
+                    <span>Save Changes</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentUser = null;
+    let newAvatarBase64 = '';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        currentUser = DB.requireAuth();
+        if (!currentUser) return;
+        renderDashboard();
+
+        // Realtime Firebase snapshot updates
+        DB.subscribeRealtimeUpdates(() => {
+            renderDashboard();
+        });
+    });
+
+    function showFeedback(message, isSuccess = true) {
+        const banner = document.getElementById('feedbackBanner');
+        const msgDiv = document.getElementById('feedbackMessage');
+        banner.classList.remove('hidden', 'bg-amber-50', 'border-2', 'border-gold-400', 'text-gold-800', 'bg-red-50', 'border-red-300', 'text-red-700');
+        
+        if (isSuccess) {
+            banner.classList.add('bg-amber-50', 'border-2', 'border-gold-400', 'text-gold-800');
+            msgDiv.innerHTML = `<span class="material-symbols-outlined text-gold-600 text-lg">check_circle</span><span>${message}</span>`;
+        } else {
+            banner.classList.add('bg-red-50', 'border-2', 'border-red-300', 'text-red-700');
+            msgDiv.innerHTML = `<span class="material-symbols-outlined text-red-600 text-lg">error</span><span>${message}</span>`;
+        }
+    }
+
+    function renderDashboard() {
+        currentUser = DB.getCurrentUser();
+        if (!currentUser) return;
+
+        // Header & Welcome
+        document.getElementById('headerUserName').innerText = currentUser.full_name;
+        document.getElementById('headerUserDept').innerText = currentUser.department;
+        document.getElementById('welcomeUser').innerText = `Welcome, ${currentUser.full_name}`;
+        document.getElementById('welcomeDept').innerText = currentUser.department;
+        
+        if (currentUser.role === 'admin') {
+            document.getElementById('adminPanelLink').classList.remove('hidden');
+        }
+
+        // User Profile Card
+        document.getElementById('profileFullName').innerText = currentUser.full_name;
+        document.getElementById('profileDepartment').innerText = currentUser.department;
+        document.getElementById('profileRoleBadge').innerText = `${currentUser.role.toUpperCase()} ACCOUNT`;
+
+        const avatarBox = document.getElementById('profileAvatarBox');
+        if (currentUser.profile_picture) {
+            avatarBox.innerHTML = `<img src="${currentUser.profile_picture}" class="w-full h-full object-cover" alt="Profile">`;
+        } else {
+            avatarBox.innerText = currentUser.full_name.charAt(0).toUpperCase();
+        }
+
+        // Fill Edit Profile Form Defaults
+        document.getElementById('edit-full-name').value = currentUser.full_name;
+        document.getElementById('edit-department').value = currentUser.department;
+        document.getElementById('edit-contact').value = currentUser.contact || '';
+        document.getElementById('res-department').value = currentUser.department;
+        document.getElementById('res-date').min = new Date().toISOString().split('T')[0];
+
+        // Fetch User Reservations & Calculate Stats
+        const allRes = DB.getReservations();
+        const userRes = allRes.filter(r => r.user_id === currentUser.id);
+
+        const pending = userRes.filter(r => r.status.toLowerCase() === 'pending').length;
+        const approved = userRes.filter(r => r.status.toLowerCase() === 'approved').length;
+        const rejected = userRes.filter(r => r.status.toLowerCase() === 'rejected').length;
+        const cancelled = userRes.filter(r => r.status.toLowerCase() === 'cancelled').length;
+
+        document.getElementById('statPending').innerText = String(pending).padStart(2, '0');
+        document.getElementById('statApproved').innerText = String(approved).padStart(2, '0');
+        document.getElementById('statRejected').innerText = String(rejected).padStart(2, '0');
+        document.getElementById('statCancelled').innerText = String(cancelled).padStart(2, '0');
+
+        document.getElementById('historyTotalBadge').innerText = `Total: ${userRes.length}`;
+        document.getElementById('approvedTotalBadge').innerText = `Approved: ${approved}`;
+
+        // Render History Rows
+        const historyContainer = document.getElementById('reservationHistoryContainer');
+        if (userRes.length === 0) {
+            historyContainer.innerHTML = `
+                <div class="p-8 text-center text-slate-500 text-xs font-medium">
+                    <span class="material-symbols-outlined text-4xl text-gold-400 mb-2 block">event_busy</span>
+                    No reservation history found. Click "New Reservation Request" to submit your first booking!
+                </div>`;
+        } else {
+            historyContainer.innerHTML = userRes.map(res => `
+                <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-amber-50/40 transition-colors">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-11 h-11 rounded-2xl bg-navy-800 text-gold-400 flex items-center justify-center shrink-0 shadow border border-gold-400/40">
+                            <span class="material-symbols-outlined">celebration</span>
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-sm text-navy-800">${escapeHtml(res.event_title)}</h4>
+                            <p class="text-xs text-slate-500 font-semibold mt-0.5">
+                                ID: <strong class="text-gold-700">#RES-${res.id}</strong> • 
+                                Dept: ${escapeHtml(res.department)}
+                            </p>
+                            ${res.admin_remarks ? `<p class="text-[11px] text-amber-800 font-medium mt-1 bg-amber-50 p-1.5 rounded-lg border border-gold-200"><strong>Note:</strong> ${escapeHtml(res.admin_remarks)}</p>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0">
+                        <div class="text-left sm:text-right">
+                            <p class="text-xs font-bold text-navy-800">${formatDate(res.event_date)}</p>
+                            <p class="text-[11px] font-medium text-slate-500">${format12Hour(res.start_time)} - ${format12Hour(res.end_time)}</p>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            ${getStatusBadgeHtml(res)}
+                            <button onclick="deleteSingleRecord(${res.id})" class="text-red-400 hover:text-red-600 transition-colors p-1 flex items-center justify-center" title="Delete Record">
+                                <span class="material-symbols-outlined text-base">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Approved Meetings History (Ascending Order)
+        const approvedRes = userRes.filter(r => r.status.toLowerCase() === 'approved').sort((a, b) => {
+            const dateTimeA = `${a.event_date || ''}T${a.start_time || '00:00'}`;
+            const dateTimeB = `${b.event_date || ''}T${b.start_time || '00:00'}`;
+            return dateTimeA.localeCompare(dateTimeB);
+        });
+        const approvedContainer = document.getElementById('approvedMeetingsContainer');
+        if (approvedRes.length === 0) {
+            approvedContainer.innerHTML = `
+                <div class="p-8 text-center text-slate-500 text-xs font-medium">
+                    <span class="material-symbols-outlined text-4xl text-gold-400 mb-2 block">event_upcoming</span>
+                    No approved meetings history found.
+                </div>`;
+        } else {
+            approvedContainer.innerHTML = approvedRes.map(app => `
+                <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-amber-50/40 transition-colors">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-11 h-11 rounded-2xl bg-navy-800 text-gold-400 flex items-center justify-center shrink-0 shadow border border-gold-400/40">
+                            <span class="material-symbols-outlined">verified</span>
+                        </div>
+                        <div>
+                            <h4 class="font-extrabold text-sm text-navy-800">${escapeHtml(app.event_title)}</h4>
+                            <p class="text-xs text-slate-500 font-semibold mt-0.5">
+                                ID: <strong class="text-gold-700">#RES-${app.id}</strong> • 
+                                Dept: ${escapeHtml(app.department)}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0">
+                        <div class="text-left sm:text-right">
+                            <p class="text-xs font-bold text-navy-800">${formatDate(app.event_date)}</p>
+                            <p class="text-[11px] font-medium text-slate-500">${format12Hour(app.start_time)} - ${format12Hour(app.end_time)}</p>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <span class="bg-emerald-100 border border-emerald-300 text-emerald-800 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">check_circle</span> Approved
+                            </span>
+                            <button onclick="deleteSingleRecord(${app.id})" class="text-red-400 hover:text-red-600 transition-colors p-1 flex items-center justify-center" title="Delete Record">
+                                <span class="material-symbols-outlined text-base">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Calendar Peek Widget (All upcoming approved events)
+        const upcomingContainer = document.getElementById('upcomingScheduleContainer');
+        const now = new Date();
+        const upcomingEvents = allRes.filter(r => {
+            if (r.status.toLowerCase() !== 'approved') return false;
+            const [year, month, day] = r.event_date.split('-');
+            const [hours, minutes] = r.end_time.split(':');
+            const eventEndDateTime = new Date(year, month - 1, day, hours, minutes);
+            return eventEndDateTime >= now;
+        }).sort((a, b) => {
+            const dateA = new Date(a.event_date + 'T' + a.start_time);
+            const dateB = new Date(b.event_date + 'T' + b.start_time);
+            return dateA - dateB;
+        });
+        if (upcomingEvents.length === 0) {
+            upcomingContainer.innerHTML = '<p class="text-xs text-slate-500 font-medium text-center py-4">No upcoming events scheduled.</p>';
+        } else {
+            upcomingContainer.innerHTML = upcomingEvents.map(evt => {
+                const dateObj = new Date(evt.event_date);
+                const month = dateObj.toLocaleString('en-us', { month: 'short' });
+                const dayNum = dateObj.getDate();
+                const dayName = dateObj.toLocaleString('en-us', { weekday: 'long' });
+                return `
+                    <div class="flex gap-3 items-start p-2.5 rounded-2xl bg-amber-50/50 border border-gold-200">
+                        <div class="flex flex-col items-center justify-center bg-navy-800 text-gold-400 w-11 h-11 rounded-xl shrink-0 border border-gold-400/50">
+                            <p class="text-[9px] font-extrabold uppercase leading-none">${month}</p>
+                            <p class="text-sm font-black leading-none mt-0.5">${dayNum}</p>
+                        </div>
+                        <div class="border-l-2 border-gold-500 pl-2.5 py-0.5 w-full">
+                            <h4 class="font-extrabold text-xs text-navy-800 leading-tight break-words pr-2">${escapeHtml(evt.event_title)}</h4>
+                            <p class="text-[10px] font-bold text-gold-700 mt-0.5">${escapeHtml(evt.department)}</p>
+                            <p class="text-[10px] font-medium text-slate-500 mt-0.5 leading-snug">
+                                ${dayName}, ${formatDate(evt.event_date)}<br>
+                                ${format12Hour(evt.start_time)} - ${format12Hour(evt.end_time)}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    function getStatusBadgeHtml(res) {
+        const st = res.status.toLowerCase();
+        if (st === 'approved') {
+            return `<span class="bg-emerald-100 border border-emerald-300 text-emerald-800 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase">Approved</span>`;
+        } else if (st === 'pending') {
+            return `
+                <div class="flex items-center gap-2">
+                    <span class="bg-amber-100 border border-gold-400 text-gold-800 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase">Pending</span>
+                    <button onclick="cancelReservation(${res.id})" class="text-xs font-bold text-red-600 hover:underline cursor-pointer">Cancel</button>
+                </div>`;
+        } else if (st === 'rejected') {
+            return `<span class="bg-red-100 border border-red-300 text-red-800 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase">Rejected</span>`;
+        } else {
+            return `<span class="bg-slate-100 border border-slate-300 text-slate-600 text-[10px] px-3 py-1 rounded-full font-extrabold uppercase">Cancelled</span>`;
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/[&<>"']/g, function(m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+        });
+    }
+
+    function format12Hour(timeStr) {
+        if (!timeStr) return '';
+        const [hours, minutes] = timeStr.split(':');
+        let h = parseInt(hours, 10);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        return `${String(h).padStart(2, '0')}:${minutes} ${ampm}`;
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateStr).toLocaleDateString('en-US', options);
+    }
+
+    function cancelReservation(id) {
+        if (confirm('Cancel this reservation request?')) {
+            DB.updateReservationStatus(id, 'Cancelled', 'Cancelled by user');
+            showFeedback('Reservation request cancelled.');
+            renderDashboard();
+        }
+    }
+
+    function clearReservationHistory() {
+        if (confirm('Clear all non-approved reservation records?')) {
+            const allRes = DB.getReservations();
+            const remaining = allRes.filter(r => r.user_id !== currentUser.id || r.status.toLowerCase() === 'approved');
+            DB.saveReservations(remaining);
+            showFeedback('Reservation records cleared.');
+            renderDashboard();
+        }
+    }
+
+    function clearApprovedHistory() {
+        if (confirm('Clear all your approved meetings history?')) {
+            const allRes = DB.getReservations();
+            const remaining = allRes.filter(r => r.user_id !== currentUser.id || r.status.toLowerCase() !== 'approved');
+            DB.saveReservations(remaining);
+            showFeedback('Approved meetings history cleared.');
+            renderDashboard();
+        }
+    }
+
+    function exportApprovedHistoryCSV() {
+        if (!currentUser) return;
+        const success = DB.exportApprovedUserCSV(currentUser.id);
+        if (success) {
+            showFeedback('Approved meetings exported to CSV in ascending order.');
+        }
+    }
+
+    function deleteSingleRecord(id) {
+        if (confirm('Delete this single record?')) {
+            DB.deleteReservation(id);
+            showFeedback('Record deleted.');
+            renderDashboard();
+        }
+    }
+
+    function openReservationModal() {
+        document.getElementById('reservationModal').classList.remove('hidden');
+    }
+    function closeReservationModal() {
+        document.getElementById('reservationModal').classList.add('hidden');
+    }
+
+    function openProfileModal() {
+        const user = DB.getCurrentUser();
+        const img = document.getElementById('edit-avatar-img');
+        const preview = document.getElementById('edit-avatar-preview');
+        if (user.profile_picture) {
+            img.src = user.profile_picture;
+            img.classList.remove('hidden');
+            preview.classList.add('hidden');
+        } else {
+            img.classList.add('hidden');
+            preview.classList.remove('hidden');
+        }
+        document.getElementById('edit-password').value = '';
+        document.getElementById('edit-confirm-password').value = '';
+        document.getElementById('profileModal').classList.remove('hidden');
+    }
+    function closeProfileModal() {
+        document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function togglePasswordVisibility(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById('icon-' + inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.innerText = 'visibility';
+        } else {
+            input.type = 'password';
+            icon.innerText = 'visibility_off';
+        }
+    }
+
+    // Avatar preview handler with fast image compression
+    document.getElementById('edit-profile-picture').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            DB.compressImage(file, 250, 0.7, function(compressedData) {
+                newAvatarBase64 = compressedData;
+                const avatarImg = document.getElementById('edit-avatar-img');
+                avatarImg.src = newAvatarBase64;
+                avatarImg.classList.remove('hidden');
+                document.getElementById('avatar-preview')?.classList.add('hidden');
+                document.getElementById('edit-avatar-preview')?.classList.add('hidden');
+            });
+        }
+    });
+
+    // New Reservation Form Handler
+    document.getElementById('newReservationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const resData = {
+            event_title: document.getElementById('res-event-title').value.trim(),
+            purpose: '',
+            event_date: document.getElementById('res-date').value,
+            start_time: document.getElementById('res-start-time').value,
+            end_time: document.getElementById('res-end-time').value,
+            attendees: '0',
+            special_requests: ''
+        };
+
+        if (resData.start_time >= resData.end_time) {
+            alert('End time must be after start time.');
+            return;
+        }
+
+        const res = DB.createReservation(resData);
+        if (res.success) {
+            closeReservationModal();
+            showFeedback('Reservation request submitted successfully!');
+            document.getElementById('newReservationForm').reset();
+            renderDashboard();
+        } else {
+            alert(res.error || 'Failed to submit reservation.');
+        }
+    });
+
+    // Edit Profile Form Handler
+    document.getElementById('editProfileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const updateData = {
+            full_name: document.getElementById('edit-full-name').value.trim(),
+            department: document.getElementById('edit-department').value,
+            contact: document.getElementById('edit-contact').value.trim()
+        };
+
+        const pwd = document.getElementById('edit-password').value;
+        const confirmPwd = document.getElementById('edit-confirm-password').value;
+
+        if (pwd || confirmPwd) {
+            if (pwd !== confirmPwd) {
+                alert("New passwords do not match.");
+                return;
+            }
+            if (pwd.length < 6) {
+                alert("Password must be at least 6 characters long.");
+                return;
+            }
+            updateData.password = pwd;
+        }
+
+        if (newAvatarBase64) {
+            updateData.profile_picture = newAvatarBase64;
+        }
+
+        const res = DB.updateProfile(currentUser.id, updateData);
+        if (res.success) {
+            closeProfileModal();
+            showFeedback('Profile details updated successfully!');
+            renderDashboard();
+        } else {
+            alert(res.error || 'Failed to update profile.');
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Dimataling GAD Function Hall - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        try {
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            "gold": {
+                                50: "#fffbebf0",
+                                100: "#fef3c7",
+                                200: "#fde68a",
+                                300: "#fcd34d",
+                                400: "#fbbf24",
+                                500: "#f59e0b",
+                                600: "#d97706",
+                                700: "#b45309",
+                                800: "#92400e"
+                            },
+                            "navy": {
+                                900: "#002b50",
+                                800: "#00355f",
+                                700: "#0f4c81",
+                                600: "#1d609b",
+                                100: "#e0f2fe"
+                            }
+                        },
+                        fontFamily: {
+                            sans: ["Inter", "sans-serif"]
+                        }
+                    }
+                }
+            }
+        } catch(_e){}
+    </script>
+    <style>
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('municipality.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .gold-border-glow {
+            box-shadow: 0 0 25px -4px rgba(245, 158, 11, 0.3);
+        }
+        .gold-btn {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        }
+        .gold-btn:hover {
+            background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="js/db.js"></script>
+</head>
+<body class="bg-amber-50/40 text-slate-800 font-sans min-h-screen relative overflow-x-hidden">
+
+<!-- Background Decorative Ambient Glows -->
+<div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+    <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-amber-200/40 rounded-full blur-[140px]"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-200/40 rounded-full blur-[140px]"></div>
+</div>
+
+<!-- Top Navigation Header -->
+<header class="fixed top-0 left-0 w-full h-16 bg-white border-b-2 border-gold-300/80 flex justify-between items-center px-3 sm:px-6 md:px-8 z-40 shadow-sm">
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0 pr-2">
+        <img src="dimataling-logo.png" alt="Dimataling Logo" class="w-8 h-8 sm:w-9 sm:h-9 object-contain rounded-xl border-2 border-gold-400/80 bg-white p-0.5 shadow-sm shrink-0">
+        <h1 class="text-xs sm:text-base md:text-xl font-extrabold text-navy-800 tracking-tight truncate">Dimataling GAD Hall - Admin Portal</h1>
+    </div>
+
+    <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+        <button onclick="openExportModal()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 gold-btn text-white border border-gold-600/50 font-semibold text-xs rounded-lg hover:shadow-gold-500/20 transition shadow-sm cursor-pointer" title="Export CSV Data">
+            <span class="material-symbols-outlined text-sm">download</span> <span class="hidden sm:inline">Export CSV</span>
+        </button>
+
+        <div class="flex items-center gap-2 sm:gap-3 border-l border-slate-200 pl-2 sm:pl-4">
+            <div class="text-right hidden md:block">
+                <p id="adminFullName" class="text-xs font-bold text-slate-800 leading-tight">Administrator</p>
+                <p class="text-[10px] text-blue-900 font-bold uppercase">System Administrator</p>
+            </div>
+            <button onclick="DB.logout()" class="flex items-center gap-1.5 px-3.5 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 border border-red-500 text-white font-extrabold text-xs rounded-xl transition-all shadow-md cursor-pointer" title="Log out of application">
+                <span class="material-symbols-outlined text-sm">logout</span>
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Main Dashboard Canvas -->
+<main class="relative z-10 pt-20 pb-12 px-3 sm:px-6 md:px-8 max-w-[1440px] mx-auto min-h-screen">
+    
+    <!-- Feedback Banner -->
+    <div id="feedbackBanner" class="hidden mb-6 p-4 rounded-xl text-sm flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-2" id="feedbackMessage"></div>
+        <button onclick="document.getElementById('feedbackBanner').classList.add('hidden')" class="hover:opacity-75"><span class="material-symbols-outlined text-sm">close</span></button>
+    </div>
+
+    <!-- Headline Header -->
+    <div class="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between sm:items-end gap-3 sm:gap-4">
+        <div>
+            <h2 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900">Dashboard Overview</h2>
+            <p class="text-xs sm:text-sm text-secondary mt-1">Real-time hall reservation activity, pending approvals, and department statistics.</p>
+        </div>
+        <div class="flex gap-2 shrink-0">
+            <span id="currentDateBadge" class="px-3.5 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm text-navy-800">calendar_today</span>
+                <span id="dateText">Today</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Bento Grid Stats Section -->
+    <div class="grid grid-cols-12 gap-4 sm:gap-6 mb-8">
+        
+        <!-- Total Users Stat -->
+        <div class="col-span-12 sm:col-span-6 lg:col-span-3 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start justify-between">
+            <div>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Users</p>
+                <h3 id="statUsers" class="text-2xl sm:text-3xl font-black text-slate-900">0</h3>
+                <p class="text-xs text-emerald-600 font-semibold mt-2 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">arrow_upward</span> Active System Users
+                </p>
+            </div>
+            <div class="p-3 bg-blue-100 text-blue-900 rounded-xl">
+                <span class="material-symbols-outlined">group</span>
+            </div>
+        </div>
+
+        <!-- Total Reservations Stat -->
+        <div class="col-span-12 sm:col-span-6 lg:col-span-3 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start justify-between">
+            <div>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Reservations</p>
+                <h3 id="statReservations" class="text-2xl sm:text-3xl font-black text-slate-900">0</h3>
+                <p class="text-xs text-emerald-600 font-semibold mt-2 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">arrow_upward</span> Total Requests Submitted
+                </p>
+            </div>
+            <div class="p-3 bg-slate-100 text-slate-800 rounded-xl">
+                <span class="material-symbols-outlined">event_available</span>
+            </div>
+        </div>
+
+        <!-- Secondary Stats Bars (Pending, Approved, Rejected) -->
+        <div class="col-span-12 lg:col-span-6 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <!-- Pending -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pending</p>
+                <h4 id="statPending" class="text-2xl font-black text-amber-600">0</h4>
+                <div class="w-full h-1.5 bg-slate-100 mt-3 rounded-full overflow-hidden">
+                    <div id="barPending" class="bg-amber-500 h-full" style="width: 0%"></div>
+                </div>
+            </div>
+            <!-- Approved -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Approved</p>
+                <h4 id="statApproved" class="text-2xl font-black text-emerald-600">0</h4>
+                <div class="w-full h-1.5 bg-slate-100 mt-3 rounded-full overflow-hidden">
+                    <div id="barApproved" class="bg-emerald-500 h-full" style="width: 0%"></div>
+                </div>
+            </div>
+            <!-- Rejected -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Rejected</p>
+                <h4 id="statRejected" class="text-2xl font-black text-red-600">0</h4>
+                <div class="w-full h-1.5 bg-slate-100 mt-3 rounded-full overflow-hidden">
+                    <div id="barRejected" class="bg-red-500 h-full" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Split: Reservations Table + Right Widgets -->
+    <div class="grid grid-cols-12 gap-6">
+        
+        <!-- Left Side: All Reservations Management Table (Col 8) -->
+        <div class="col-span-12 lg:col-span-8 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+            <div class="p-5 border-b border-slate-200 bg-slate-50/60 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                <h3 class="font-bold text-base text-navy-800 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">table_view</span>
+                    All Reservation Records
+                </h3>
+                
+                <!-- Quick Filter Input -->
+                <input type="text" id="tableSearch" onkeyup="filterTable()" placeholder="Search by title, dept, code..." class="h-10 px-3 text-xs font-medium border-2 border-slate-300 rounded-xl w-full sm:w-64 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-white shadow-sm transition-all hover:border-gold-400">
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left text-xs text-slate-700" id="reservationsTable">
+                    <thead class="bg-slate-100/80 uppercase text-[10px] font-bold text-slate-500 border-b whitespace-nowrap">
+                        <tr>
+                            <th class="p-3.5">Code / Title</th>
+                            <th class="p-3.5">Department</th>
+                            <th class="p-3.5">Requested By</th>
+                            <th class="p-3.5">Date &amp; Time</th>
+                            <th class="p-3.5">Status</th>
+                            <th class="p-3.5 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reservationsTableBody" class="divide-y divide-slate-100">
+                        <!-- Dynamic Table Rows rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right Side Widgets (Col 4) -->
+        <div class="col-span-12 lg:col-span-4 space-y-6">
+            
+            <!-- Pending Requests Action Widget -->
+            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-navy-800 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">pending_actions</span>
+                        Pending Requests
+                    </h3>
+                    <span id="pendingBadgeCount" class="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0 New</span>
+                </div>
+
+                <div id="pendingWidgetContainer" class="divide-y divide-slate-100">
+                    <!-- Dynamic Pending Requests rendered by JS -->
+                </div>
+            </div>
+
+            <!-- Live Hall Status Widget -->
+            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm p-5">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h3 class="font-bold text-sm text-navy-800 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">sensors</span>
+                        Live Hall Status
+                    </h3>
+                    <div class="flex items-center gap-1.5">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <span id="liveStatusBadge" class="text-emerald-700 text-[10px] font-bold uppercase tracking-wider">Hall Available</span>
+                    </div>
+                </div>
+
+                <div id="liveHallWidgetContainer">
+                    <!-- Dynamic Live Hall Info rendered by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Section: System Users Management -->
+    <div class="mt-8 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+        <div class="p-5 border-b border-slate-200 bg-slate-50/60 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+            <h3 class="font-bold text-base text-navy-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[20px]">group_manage</span>
+                Registered System Users
+            </h3>
+            <!-- Quick Filter Input -->
+            <input type="text" id="usersTableSearch" onkeyup="filterUsersTable()" placeholder="Search by name, email, dept..." class="h-10 px-3 text-xs font-medium border-2 border-slate-300 rounded-xl w-full sm:w-64 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-white shadow-sm transition-all hover:border-gold-400">
+        </div>
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left text-xs text-slate-700" id="usersTable">
+                <thead class="bg-slate-100/80 uppercase text-[10px] font-bold text-slate-500 border-b whitespace-nowrap">
+                    <tr>
+                        <th class="p-3.5">Name / Username</th>
+                        <th class="p-3.5">Email</th>
+                        <th class="p-3.5">Department</th>
+                        <th class="p-3.5">Role</th>
+                        <th class="p-3.5 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody" class="divide-y divide-slate-100">
+                    <!-- Dynamic Table Rows rendered by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- Export Options Modal -->
+<div id="exportModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-navy-900/60 backdrop-blur-sm overflow-y-auto">
+    <div class="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full p-4 sm:p-6 shadow-2xl border-2 border-gold-300 relative animate-fadeIn max-h-[90vh] overflow-y-auto custom-scrollbar my-auto">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-gold-600 text-2xl">download</span>
+                <h3 class="font-extrabold text-base text-navy-800">Export Reservation Data</h3>
+            </div>
+            <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <p class="text-xs text-slate-600 mb-5">Choose how you would like to download your reservation records into Excel CSV files.</p>
+
+        <div class="space-y-3">
+            <!-- Option 1: Combined CSV -->
+            <button onclick="DB.exportToCSV(); closeExportModal();" class="w-full p-3.5 border-2 border-slate-200 hover:border-gold-500 hover:bg-amber-50/50 rounded-2xl text-left transition-all group flex items-center justify-between cursor-pointer">
+                <div>
+                    <p class="text-xs font-bold text-navy-800 group-hover:text-gold-700">All Departments (Single File)</p>
+                    <p class="text-[11px] text-slate-500">Download 1 combined CSV file with all records.</p>
+                </div>
+                <span class="material-symbols-outlined text-slate-400 group-hover:text-gold-600">file_download</span>
+            </button>
+
+            <!-- Option 2: Filter by Department -->
+            <div class="p-3.5 border-2 border-slate-200 rounded-2xl space-y-2 bg-slate-50/60">
+                <label class="block text-xs font-bold text-navy-800">Export Specific Department Only</label>
+                <div class="flex gap-2">
+                    <select id="exportDeptSelect" class="flex-1 h-9 px-3 text-xs rounded-xl border border-slate-300 font-medium bg-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500">
+                        <!-- Populated dynamically -->
+                    </select>
+                    <button onclick="handleExportSingleDept()" class="px-4 h-9 gold-btn text-white text-xs font-bold rounded-xl shadow cursor-pointer shrink-0">
+                        Export
+                    </button>
+                </div>
+            </div>
+
+            <!-- Option 3: Separate Files Per Department -->
+            <button onclick="DB.exportByDepartmentSeparated(); closeExportModal();" class="w-full p-3.5 border-2 border-slate-200 hover:border-gold-500 hover:bg-amber-50/50 rounded-2xl text-left transition-all group flex items-center justify-between cursor-pointer">
+                <div>
+                    <p class="text-xs font-bold text-navy-800 group-hover:text-gold-700">Separate File Per Department</p>
+                    <p class="text-[11px] text-slate-500">Downloads individual CSV files for each department automatically.</p>
+                </div>
+                <span class="material-symbols-outlined text-slate-400 group-hover:text-gold-600">folder_zip</span>
+            </button>
+        </div>
+
+        <div class="mt-6 pt-3 border-t border-slate-100 flex justify-end">
+            <button onclick="closeExportModal()" class="px-4 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let adminUser = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        adminUser = DB.requireAuth('admin');
+        if (!adminUser) return;
+
+        document.getElementById('adminFullName').innerText = adminUser.full_name;
+        document.getElementById('dateText').innerText = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+        renderAdminDashboard();
+
+        // Realtime Firebase snapshot updates
+        DB.subscribeRealtimeUpdates(() => {
+            renderAdminDashboard();
+        });
+    });
+
+    function showFeedback(message, isSuccess = true) {
+        const banner = document.getElementById('feedbackBanner');
+        const msgDiv = document.getElementById('feedbackMessage');
+        banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-800', 'bg-red-50', 'border-red-200', 'text-red-800');
+        
+        if (isSuccess) {
+            banner.classList.add('bg-emerald-50', 'border', 'border-emerald-200', 'text-emerald-800');
+            msgDiv.innerHTML = `<span class="material-symbols-outlined text-emerald-600">check_circle</span><span>${message}</span>`;
+        } else {
+            banner.classList.add('bg-red-50', 'border', 'border-red-200', 'text-red-800');
+            msgDiv.innerHTML = `<span class="material-symbols-outlined text-red-600">error</span><span>${message}</span>`;
+        }
+    }
+
+    function renderAdminDashboard() {
+        const users = DB.getUsers();
+        const reservations = DB.getReservations();
+
+        const standardUsersList = users.filter(u => u.role !== 'admin');
+        
+        // Metrics
+        const totalUsers = standardUsersList.length;
+        const totalReservations = reservations.length;
+
+        const countPending = reservations.filter(r => r.status.toLowerCase() === 'pending').length;
+        const countApproved = reservations.filter(r => r.status.toLowerCase() === 'approved').length;
+        const countRejected = reservations.filter(r => r.status.toLowerCase() === 'rejected').length;
+
+        document.getElementById('statUsers').innerText = totalUsers;
+        document.getElementById('statReservations').innerText = totalReservations;
+        document.getElementById('statPending').innerText = countPending;
+        document.getElementById('statApproved').innerText = countApproved;
+        document.getElementById('statRejected').innerText = countRejected;
+
+        const pendingPct = totalReservations > 0 ? Math.min(100, Math.round((countPending / totalReservations) * 100)) : 0;
+        const approvedPct = totalReservations > 0 ? Math.min(100, Math.round((countApproved / totalReservations) * 100)) : 0;
+        const rejectedPct = totalReservations > 0 ? Math.min(100, Math.round((countRejected / totalReservations) * 100)) : 0;
+
+        document.getElementById('barPending').style.width = `${pendingPct}%`;
+        document.getElementById('barApproved').style.width = `${approvedPct}%`;
+        document.getElementById('barRejected').style.width = `${rejectedPct}%`;
+
+        // Reservations Table
+        const tbody = document.getElementById('reservationsTableBody');
+        if (reservations.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No reservations found in database.</td></tr>`;
+        } else {
+            tbody.innerHTML = reservations.map(r => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-3.5">
+                        <p class="font-bold text-slate-900">${escapeHtml(r.event_title)}</p>
+                        <p class="text-[10px] text-slate-500 font-mono">#RES-${r.id}</p>
+                    </td>
+                    <td class="p-3.5 font-medium">${escapeHtml(r.department)}</td>
+                    <td class="p-3.5">${escapeHtml(r.user_name)}</td>
+                    <td class="p-3.5">
+                        <p class="font-semibold text-slate-800">${formatDate(r.event_date)}</p>
+                        <p class="text-[10px] text-slate-500">${format12Hour(r.start_time)} - ${format12Hour(r.end_time)}</p>
+                    </td>
+                    <td class="p-3.5">
+                        ${getStatusBadgeHtml(r.status)}
+                    </td>
+                    <td class="p-3.5 text-right">
+                        ${r.status.toLowerCase() === 'pending' ? `
+                            <div class="flex justify-end gap-1">
+                                <button onclick="handleApprove(${r.id})" class="px-2.5 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded hover:bg-emerald-700 cursor-pointer">Approve</button>
+                                <button onclick="handleReject(${r.id})" class="px-2.5 py-1 bg-red-600 text-white text-[10px] font-bold rounded hover:bg-red-700 cursor-pointer">Reject</button>
+                                <button onclick="handleDelete(${r.id})" class="px-2.5 py-1 bg-slate-600 text-white text-[10px] font-bold rounded hover:bg-slate-700 cursor-pointer">Delete</button>
+                            </div>
+                        ` : `
+                            <div class="flex justify-end gap-1">
+                                <button onclick="handleDelete(${r.id})" class="px-2.5 py-1 bg-slate-600 text-white text-[10px] font-bold rounded hover:bg-slate-700 cursor-pointer">Delete</button>
+                            </div>
+                        `}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Pending Widget
+        const pendingRes = reservations.filter(r => r.status.toLowerCase() === 'pending');
+        document.getElementById('pendingBadgeCount').innerText = `${pendingRes.length} New`;
+        const pendingContainer = document.getElementById('pendingWidgetContainer');
+        if (pendingRes.length === 0) {
+            pendingContainer.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">No pending reservation requests right now.</div>`;
+        } else {
+            pendingContainer.innerHTML = pendingRes.slice(0, 5).map(p => `
+                <div class="p-4 hover:bg-slate-50 transition-colors">
+                    <div class="mb-2">
+                        <p class="font-bold text-xs text-slate-900">${escapeHtml(p.event_title)}</p>
+                        <p class="text-[11px] text-slate-500">
+                            ${escapeHtml(p.department)} • Requested by ${escapeHtml(p.user_name)}
+                        </p>
+                        <p class="text-[10px] text-slate-400 mt-1">
+                            Date: ${formatDate(p.event_date)} (${format12Hour(p.start_time)})
+                        </p>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <button onclick="handleApprove(${p.id})" class="flex-1 py-1.5 bg-navy-800 text-white rounded font-bold text-xs hover:bg-blue-900 transition cursor-pointer">Approve</button>
+                        <button onclick="handleReject(${p.id})" class="flex-1 py-1.5 border border-red-300 text-red-600 rounded font-bold text-xs hover:bg-red-50 transition cursor-pointer">Reject</button>
+                        <button onclick="handleDelete(${p.id})" class="px-2 py-1.5 bg-slate-100 text-slate-600 rounded font-bold text-xs hover:bg-slate-200 transition cursor-pointer" title="Delete"><span class="material-symbols-outlined text-sm">delete</span></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Live Hall Status Widget
+        const todayStr = new Date().toISOString().split('T')[0];
+        const approvedToday = reservations.filter(r => r.status.toLowerCase() === 'approved' && r.event_date === todayStr);
+        const liveWidget = document.getElementById('liveHallWidgetContainer');
+        const liveStatusBadge = document.getElementById('liveStatusBadge');
+
+        if (approvedToday.length > 0) {
+            const live = approvedToday[0];
+            liveStatusBadge.innerText = 'Event Active';
+            liveWidget.innerHTML = `
+                <div>
+                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Today's Scheduled Event</p>
+                    <h4 class="font-bold text-sm text-slate-900">${escapeHtml(live.event_title)}</h4>
+                    <p class="text-xs text-slate-500">${escapeHtml(live.department)}</p>
+
+                    <div class="flex items-center gap-3 mt-4 pt-3 border-t border-slate-100">
+                        <div class="w-9 h-9 rounded-full bg-navy-800 text-white font-bold flex items-center justify-center text-xs">
+                            ${live.user_name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">${escapeHtml(live.user_name)}</p>
+                            <p class="text-[10px] text-slate-400 uppercase">Event Lead</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 space-y-1.5">
+                        <div class="flex justify-between text-[11px]">
+                            <span class="text-slate-500">Schedule</span>
+                            <span class="font-semibold text-slate-800">${format12Hour(live.start_time)} - ${format12Hour(live.end_time)}</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="bg-navy-800 h-full w-2/3"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            liveStatusBadge.innerText = 'Hall Available';
+            liveWidget.innerHTML = `
+                <div class="text-center py-4 text-xs text-slate-500">
+                    <span class="material-symbols-outlined text-3xl text-emerald-500 mb-1 block">check_circle</span>
+                    No active events right now. The GAD Function Hall is available.
+                </div>
+            `;
+        }
+
+        // Users Table Population
+        const usersTbody = document.getElementById('usersTableBody');
+        const standardUsers = users.filter(u => u.role !== 'admin');
+        if (standardUsers.length === 0) {
+            usersTbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">No standard users found in database.</td></tr>`;
+        } else {
+            usersTbody.innerHTML = standardUsers.map(u => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-3.5">
+                        <p class="font-bold text-slate-900">${escapeHtml(u.full_name)}</p>
+                        <p class="text-[10px] text-slate-500 font-mono">@${escapeHtml(u.username)}</p>
+                    </td>
+                    <td class="p-3.5">${escapeHtml(u.email)}</td>
+                    <td class="p-3.5 font-medium">${escapeHtml(u.department)}</td>
+                    <td class="p-3.5">
+                        <span class="${u.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'} text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase">${escapeHtml(u.role)}</span>
+                    </td>
+                    <td class="p-3.5 text-right">
+                        <div class="flex justify-end gap-1">
+                            ${u.id === adminUser.id ? `<span class="text-[10px] text-slate-400 italic mr-2 self-center">Current User</span>` : ''}
+                            <button onclick="handleDeleteUser(${u.id})" class="px-2.5 py-1 ${u.id === adminUser.id ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-slate-600 text-white hover:bg-slate-700 cursor-pointer'} text-[10px] font-bold rounded" title="Delete User" ${u.id === adminUser.id ? 'disabled' : ''}>
+                                <span class="material-symbols-outlined text-[12px]">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    function getStatusBadgeHtml(status) {
+        const st = status.toLowerCase();
+        if (st === 'approved') return `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase">Approved</span>`;
+        if (st === 'pending') return `<span class="bg-amber-100 text-amber-800 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase">Pending</span>`;
+        if (st === 'rejected') return `<span class="bg-red-100 text-red-800 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase">Rejected</span>`;
+        return `<span class="bg-slate-100 text-slate-600 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase">Cancelled</span>`;
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/[&<>"']/g, function(m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+        });
+    }
+
+    function format12Hour(timeStr) {
+        if (!timeStr) return '';
+        const [hours, minutes] = timeStr.split(':');
+        let h = parseInt(hours, 10);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        return `${String(h).padStart(2, '0')}:${minutes} ${ampm}`;
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateStr).toLocaleDateString('en-US', options);
+    }
+
+    function handleApprove(id) {
+        const remarks = prompt('Enter admin approval remarks (optional):', 'Approved by GAD Office Administrator.');
+        if (remarks !== null) {
+            DB.updateReservationStatus(id, 'Approved', remarks);
+            showFeedback('Reservation approved successfully.');
+            renderAdminDashboard();
+        }
+    }
+
+    function handleReject(id) {
+        const remarks = prompt('Enter reason for rejection:', 'Schedule conflict or unauthorized request.');
+        if (remarks !== null) {
+            DB.updateReservationStatus(id, 'Rejected', remarks);
+            showFeedback('Reservation rejected.', false);
+            renderAdminDashboard();
+        }
+    }
+
+    function handleDelete(id) {
+        if (confirm('Are you sure you want to delete this reservation? This action cannot be undone.')) {
+            DB.deleteReservation(id);
+            showFeedback('Reservation deleted successfully.');
+            renderAdminDashboard();
+        }
+    }
+
+    function filterTable() {
+        const input = document.getElementById('tableSearch');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('reservationsTable');
+        const tr = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < tr.length; i++) {
+            let rowText = tr[i].textContent || tr[i].innerText;
+            if (rowText.toLowerCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+
+    function handleDeleteUser(id) {
+        if (confirm('Are you sure you want to delete this user? This will also remove all their associated reservations. This action cannot be undone.')) {
+            const result = DB.deleteUser(id);
+            if (result.success) {
+                showFeedback('User deleted successfully.');
+                renderAdminDashboard();
+            } else {
+                showFeedback('Error: ' + result.error, false);
+            }
+        }
+    }
+
+    function filterUsersTable() {
+        const input = document.getElementById('usersTableSearch');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('usersTable');
+        const tr = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < tr.length; i++) {
+            let rowText = tr[i].textContent || tr[i].innerText;
+            if (rowText.toLowerCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+
+    function openExportModal() {
+        const reservations = DB.getReservations();
+        const select = document.getElementById('exportDeptSelect');
+        const depts = [...new Set(reservations.map(r => r.department || 'Unspecified'))];
+        
+        if (depts.length === 0) {
+            select.innerHTML = '<option value="">No Departments Found</option>';
+        } else {
+            select.innerHTML = depts.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+        }
+        document.getElementById('exportModal').classList.remove('hidden');
+    }
+
+    function closeExportModal() {
+        document.getElementById('exportModal').classList.add('hidden');
+    }
+
+    function handleExportSingleDept() {
+        const select = document.getElementById('exportDeptSelect');
+        const dept = select.value;
+        if (!dept) {
+            alert('Please select a department.');
+            return;
+        }
+        DB.exportToCSV(dept);
+        closeExportModal();
+    }
+</script>
+</body>
+</html>

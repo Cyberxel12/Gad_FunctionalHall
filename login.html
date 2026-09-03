@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Dimataling GAD Function Hall - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        try {
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            "gold": {
+                                50: "#fffbebf0",
+                                100: "#fef3c7",
+                                200: "#fde68a",
+                                300: "#fcd34d",
+                                400: "#fbbf24",
+                                500: "#f59e0b",
+                                600: "#d97706",
+                                700: "#b45309",
+                                800: "#92400e"
+                            },
+                            "navy": {
+                                900: "#002b50",
+                                800: "#00355f",
+                                700: "#0f4c81",
+                                600: "#1d609b",
+                                100: "#e0f2fe"
+                            }
+                        },
+                        fontFamily: {
+                            sans: ["Inter", "sans-serif"]
+                        }
+                    }
+                }
+            }
+        } catch(_e){}
+    </script>
+    <style>
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('municipality.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .gold-border-glow {
+            box-shadow: 0 0 25px -4px rgba(245, 158, 11, 0.3);
+        }
+        .gold-btn {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        }
+        .gold-btn:hover {
+            background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d97706;
+            border-radius: 4px;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="js/db.js"></script>
+</head>
+<body class="min-h-screen w-full flex items-center justify-center p-3 sm:p-6 bg-amber-50/40 relative overflow-y-auto font-sans text-slate-800">
+
+<!-- Background Decorative Ambient Glows -->
+<div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+    <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-amber-200/40 rounded-full blur-[140px]"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-200/40 rounded-full blur-[140px]"></div>
+</div>
+
+<!-- Main Content Card -->
+<main class="relative z-10 w-full max-w-[430px] my-auto py-4">
+    <div class="login-card bg-white border-2 border-gold-300/80 p-5 sm:p-6 shadow-2xl rounded-3xl gold-border-glow relative flex flex-col justify-between">
+        
+        <!-- Top Decorative Gold Accent Bar -->
+        <div class="h-1.5 w-24 bg-gradient-to-r from-gold-500 via-gold-400 to-navy-800 rounded-full mx-auto mb-3"></div>
+
+        <!-- Brand Header -->
+        <div class="text-center mb-4">
+            <img src="dimataling-logo.png" alt="Dimataling Logo" class="w-16 h-16 object-contain rounded-full border-2 border-gold-400 shadow-md p-1 bg-white mx-auto mb-2">
+            <h1 class="text-xl font-black text-navy-800 tracking-tight leading-tight">Dimataling GAD Function Hall</h1>
+            <p class="text-xs font-bold text-gold-700 uppercase tracking-wider mt-0.5">Municipality Reservation Portal</p>
+        </div>
+
+        <!-- Feedback Alert Container -->
+        <div id="alertBox" class="hidden mb-3 p-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm"></div>
+
+        <!-- Login Form -->
+        <form class="space-y-3.5" id="loginForm">
+            <input type="hidden" name="role" id="selectedRoleInput" value="user"/>
+
+            <!-- Clean Username or Email Field -->
+            <div class="space-y-1">
+                <label class="text-[11px] font-bold text-navy-800 uppercase tracking-wider block" for="identity">Username or Email</label>
+                <div class="relative group">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gold-600 group-focus-within:text-navy-800 transition-colors flex items-center">
+                        <span class="material-symbols-outlined text-[18px]">person</span>
+                    </div>
+                    <input class="w-full h-[40px] pl-9 pr-3 bg-slate-50/60 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 transition-all text-xs font-medium text-slate-800 placeholder:text-slate-400" 
+                           id="identity" 
+                           name="identity" 
+                           placeholder="Enter your username or email" 
+                           required 
+                           value=""
+                           autocomplete="off"
+                           type="text"/>
+                </div>
+            </div>
+
+            <!-- Clean Password Field -->
+            <div class="space-y-1">
+                <div class="flex justify-between items-center">
+                    <label class="text-[11px] font-bold text-navy-800 uppercase tracking-wider block" for="password">Password</label>
+                    <a class="text-[11px] text-gold-700 font-bold hover:text-navy-800 transition-colors cursor-pointer" href="#" onclick="openForgotPasswordModal(); return false;">Forgot?</a>
+                </div>
+                <div class="relative group">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gold-600 group-focus-within:text-navy-800 transition-colors flex items-center">
+                        <span class="material-symbols-outlined text-[18px]">lock</span>
+                    </div>
+                    <input class="w-full h-[40px] pl-9 pr-10 bg-slate-50/60 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 transition-all text-xs font-medium text-slate-800 placeholder:text-slate-400" 
+                           id="password" 
+                           name="password" 
+                           placeholder="••••••••" 
+                           required 
+                           value=""
+                           autocomplete="new-password"
+                           type="password"/>
+                    <button class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-gold-600 transition-colors focus:outline-none p-1" onclick="togglePassword()" type="button">
+                        <span class="material-symbols-outlined text-[18px]" id="passwordIcon">visibility</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Remember Me Checkbox -->
+            <div class="flex items-center space-x-2 pt-0.5">
+                <input class="w-3.5 h-3.5 rounded border-slate-300 text-gold-600 focus:ring-gold-400 cursor-pointer" id="remember" name="remember" type="checkbox"/>
+                <label class="text-[11px] font-medium text-slate-600 select-none cursor-pointer" for="remember">Remember me</label>
+            </div>
+
+            <!-- Radio Role Selector -->
+            <div class="space-y-1.5 pt-1">
+                <label class="text-[11px] font-bold text-navy-800 uppercase tracking-wider block">Account Role</label>
+                
+                <div class="grid grid-cols-2 gap-2.5" id="roleRadioGroup">
+                    
+                    <!-- Admin Option -->
+                    <label id="roleCardAdmin" onclick="selectRoleRadio('admin')" class="role-radio-card cursor-pointer p-2.5 rounded-xl border-2 transition-all flex items-center gap-2.5 border-slate-200 bg-white hover:border-gold-300">
+                        <div class="relative flex items-center justify-center shrink-0">
+                            <input type="radio" name="role_radio" value="admin" class="sr-only">
+                            <div id="dotAdmin" class="w-4 h-4 rounded-full border-2 border-slate-300 flex items-center justify-center bg-white">
+                                <div class="w-2 h-2 rounded-full bg-transparent"></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-navy-800 text-[20px]">admin_panel_settings</span>
+                            <div>
+                                <p class="text-xs font-bold text-navy-800 leading-tight">Admin</p>
+                                <p class="text-[9px] font-semibold text-gold-700 leading-none">Manager</p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- User Option -->
+                    <label id="roleCardUser" onclick="selectRoleRadio('user')" class="role-radio-card cursor-pointer p-2.5 rounded-xl border-2 transition-all flex items-center gap-2.5 border-gold-500 bg-amber-50/80 shadow-sm ring-2 ring-gold-400/30">
+                        <div class="relative flex items-center justify-center shrink-0">
+                            <input type="radio" name="role_radio" value="user" checked class="sr-only">
+                            <div id="dotUser" class="w-4 h-4 rounded-full border-2 border-gold-600 flex items-center justify-center bg-white">
+                                <div class="w-2 h-2 rounded-full bg-gold-600"></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-slate-500 text-[20px]">account_circle</span>
+                            <div>
+                                <p class="text-xs font-bold text-slate-800 leading-tight">User</p>
+                                <p class="text-[9px] font-medium text-slate-500 leading-none">Reserver</p>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-2 pt-2">
+                <button class="w-full h-[42px] gold-btn text-white font-bold text-xs rounded-xl shadow-md hover:shadow-gold-500/20 active:scale-[0.99] transition-all flex items-center justify-center gap-1.5" type="submit" id="submitBtn">
+                    <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">login</span>
+                    <span>Sign In to Dashboard</span>
+                </button>
+
+                <div class="relative flex items-center py-0.5">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink mx-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">OR</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <a href="register.html" class="w-full h-[38px] bg-navy-800 text-white font-bold text-xs rounded-xl hover:bg-navy-900 transition-all flex items-center justify-center gap-1.5 shadow">
+                    <span class="material-symbols-outlined text-[16px]">person_add</span>
+                    <span>Create New Account</span>
+                </a>
+            </div>
+        </form>
+
+        <!-- Clean Footer -->
+        <div class="mt-4 pt-3 border-t border-gold-200 text-center">
+            <p class="text-xs font-black text-navy-800 tracking-wider uppercase">
+                Developed by ZDSPGC DIMATALING STUDENTS
+            </p>
+        </div>
+    </div>
+</main>
+
+<!-- Forgot Password Modal (OTP Verification Flow) -->
+<div id="forgotPasswordModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-navy-900/60 backdrop-blur-sm overflow-y-auto">
+    <div class="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full p-4 sm:p-6 shadow-2xl border-2 border-gold-300 relative animate-fadeIn max-h-[90vh] overflow-y-auto custom-scrollbar my-auto">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-gold-600 text-2xl">mark_email_unread</span>
+                <h3 class="font-extrabold text-base text-navy-800">OTP Account Recovery</h3>
+            </div>
+            <button onclick="closeForgotPasswordModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <p class="text-xs text-slate-600 mb-3" id="otpSubtitle">Enter your registered Gmail address to receive a 6-digit OTP verification code.</p>
+
+        <!-- Simulated Email Inbox Notification Toast -->
+        <div id="otpSimulationToast" class="hidden mb-4 p-3 rounded-2xl bg-amber-50 border-2 border-gold-400 text-navy-900 text-xs shadow-md space-y-1">
+            <div class="flex items-center justify-between font-extrabold text-gold-700">
+                <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">outgoing_mail</span> Simulated Gmail Inbox</span>
+                <span class="text-[10px] bg-gold-200 text-gold-800 px-2 py-0.5 rounded-full uppercase">Just Now</span>
+            </div>
+            <p class="text-[11px] text-slate-700 leading-snug" id="otpSimulationMsg"></p>
+        </div>
+
+        <div id="forgotAlertBox" class="hidden mb-3 p-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm"></div>
+
+        <!-- STEP 1: Request Email Verification Code -->
+        <div id="otpStep1" class="space-y-3">
+            <div>
+                <label class="block text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-1">Registered Gmail Address or Username *</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gold-600 text-[18px]">mail</span>
+                    <input type="text" id="reset-identity" placeholder="e.g. user@gmail.com or username" class="w-full h-10 pl-9 pr-3 rounded-xl border-2 border-slate-200 text-xs font-medium focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-slate-50/60">
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-end gap-2 pt-2 border-t border-slate-100 mt-4">
+                <button type="button" onclick="closeForgotPasswordModal()" class="px-4 py-2.5 text-xs font-bold text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer">Cancel</button>
+                <button type="button" onclick="handleSendVerificationCode()" id="sendVerificationBtn" class="px-6 py-2.5 gold-btn text-white font-bold text-xs rounded-xl shadow-md border border-gold-400 hover:shadow-gold-500/20 cursor-pointer flex items-center justify-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm">mark_email_read</span>
+                    <span>Send Verification Code</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 2: Verify OTP & Set Password Form -->
+        <div id="otpStep2" class="hidden space-y-3">
+            <div>
+                <label class="block text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-1">Enter 6-Digit OTP Code *</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gold-600 text-[18px]">password</span>
+                    <input type="text" id="reset-otp-input" maxlength="6" placeholder="123456" class="w-full h-10 pl-9 pr-3 rounded-xl border-2 border-gold-400 text-sm font-black tracking-widest text-center text-navy-900 bg-amber-50/40 focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-1">New Password *</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gold-600 text-[18px]">lock</span>
+                    <input type="password" id="reset-new-password" placeholder="••••••••" class="w-full h-10 pl-9 pr-10 rounded-xl border-2 border-slate-200 text-xs font-medium focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-slate-50/60">
+                    <button type="button" onclick="toggleResetPassword('reset-new-password', 'resetIcon1')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-gold-600 p-1 cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]" id="resetIcon1">visibility_off</span>
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-navy-800 uppercase tracking-wider mb-1">Confirm New Password *</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gold-600 text-[18px]">lock_reset</span>
+                    <input type="password" id="reset-confirm-password" placeholder="••••••••" class="w-full h-10 pl-9 pr-10 rounded-xl border-2 border-slate-200 text-xs font-medium focus:border-gold-500 focus:ring-2 focus:ring-gold-400/20 bg-slate-50/60">
+                    <button type="button" onclick="toggleResetPassword('reset-confirm-password', 'resetIcon2')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-gold-600 p-1 cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]" id="resetIcon2">visibility_off</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t border-slate-100 mt-4">
+                <button type="button" onclick="resetToStep1()" class="text-xs font-bold text-navy-800 hover:underline cursor-pointer flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">arrow_back</span> Back
+                </button>
+                <button type="button" onclick="handleVerifyOTPAndReset()" id="verifyOtpBtn" class="px-6 py-2.5 gold-btn text-white font-bold text-xs rounded-xl shadow-md border border-gold-400 hover:shadow-gold-500/20 cursor-pointer flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm">verified_user</span>
+                    <span>Verify & Reset Password</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle post-registration arrival
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('registered') === 'true') {
+            const registeredUser = urlParams.get('username');
+            if (registeredUser) {
+                document.getElementById('identity').value = registeredUser;
+            }
+            showAlert('Account registered successfully! Please log in with your credentials.', false);
+        }
+
+        // Redirect if already logged in
+        const currentUser = DB.getCurrentUser();
+        if (currentUser) {
+            if (currentUser.role === 'admin') {
+                window.location.href = 'admin_dashboard.html';
+            } else {
+                window.location.href = 'user_dashboard.html';
+            }
+        }
+    });
+
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const passwordIcon = document.getElementById('passwordIcon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            passwordIcon.innerText = 'visibility_off';
+        } else {
+            passwordInput.type = 'password';
+            passwordIcon.innerText = 'visibility';
+        }
+    }
+
+    function selectRoleRadio(role) {
+        document.getElementById('selectedRoleInput').value = role;
+        
+        const cardAdmin = document.getElementById('roleCardAdmin');
+        const cardUser = document.getElementById('roleCardUser');
+        const dotAdmin = document.getElementById('dotAdmin');
+        const dotUser = document.getElementById('dotUser');
+
+        if (role === 'admin') {
+            cardAdmin.className = "role-radio-card cursor-pointer p-2.5 rounded-xl border-2 transition-all flex items-center gap-2.5 border-gold-500 bg-amber-50/80 shadow-sm ring-2 ring-gold-400/30";
+            cardUser.className = "role-radio-card cursor-pointer p-2.5 rounded-xl border-2 transition-all flex items-center gap-2.5 border-slate-200 bg-white hover:border-gold-300";
+            
+            dotAdmin.className = "w-4 h-4 rounded-full border-2 border-gold-600 flex items-center justify-center bg-white";
+            dotAdmin.innerHTML = '<div class="w-2 h-2 rounded-full bg-gold-600"></div>';
+            
+            dotUser.className = "w-4 h-4 rounded-full border-2 border-slate-300 flex items-center justify-center bg-white";
+            dotUser.innerHTML = '<div class="w-2 h-2 rounded-full bg-transparent"></div>';
+        } else {
+            cardUser.className = "role-radio-card cursor-pointer p-2.5 rounded-xl border-2 transition-all flex items-center gap-2.5 border-gold-500 bg-amber-50/80 shadow-sm ring-2 ring-gold-400/30";
+            cardAdmin.className = "role-radio-card cursor-pointer p-2.5 rounded-xl border-2 transition-all flex items-center gap-2.5 border-slate-200 bg-white hover:border-gold-300";
+            
+            dotUser.className = "w-4 h-4 rounded-full border-2 border-gold-600 flex items-center justify-center bg-white";
+            dotUser.innerHTML = '<div class="w-2 h-2 rounded-full bg-gold-600"></div>';
+            
+            dotAdmin.className = "w-4 h-4 rounded-full border-2 border-slate-300 flex items-center justify-center bg-white";
+            dotAdmin.innerHTML = '<div class="w-2 h-2 rounded-full bg-transparent"></div>';
+        }
+    }
+
+    function showAlert(message, isError = true) {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.classList.remove('hidden', 'bg-red-50', 'border-red-200', 'text-red-700', 'bg-amber-50', 'border-gold-300', 'text-gold-800');
+        
+        if (isError) {
+            alertBox.classList.add('bg-red-50', 'border', 'border-red-200', 'text-red-700');
+            alertBox.innerHTML = `<span class="material-symbols-outlined text-red-600 shrink-0 text-base">error</span><div>${message}</div>`;
+        } else {
+            alertBox.classList.add('bg-amber-50', 'border', 'border-gold-300', 'text-gold-800');
+            alertBox.innerHTML = `<span class="material-symbols-outlined text-gold-600 shrink-0 text-base">check_circle</span><div>${message}</div>`;
+        }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submitBtn');
+        const identity = document.getElementById('identity').value.trim();
+        const password = document.getElementById('password').value;
+        const role = document.getElementById('selectedRoleInput').value;
+        const remember = document.getElementById('remember').checked;
+
+        submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-xs">progress_activity</span> Authenticating...';
+        submitBtn.disabled = true;
+
+        requestAnimationFrame(() => {
+            const res = DB.login(identity, password, role, remember);
+            if (res.success) {
+                if (res.user && res.user.role === 'admin') {
+                    window.location.href = 'admin_dashboard.html';
+                } else {
+                    window.location.href = 'user_dashboard.html';
+                }
+            } else {
+                showAlert(res.error, true);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: \'FILL\' 1;">login</span><span>Sign In to Dashboard</span>';
+            }
+        });
+    });
+
+    let activeOtpCode = '';
+    let targetOtpUser = null;
+
+    function openForgotPasswordModal() {
+        document.getElementById('forgotAlertBox').classList.add('hidden');
+        document.getElementById('otpSimulationToast').classList.add('hidden');
+        document.getElementById('reset-identity').value = '';
+        document.getElementById('reset-otp-input').value = '';
+        document.getElementById('reset-new-password').value = '';
+        document.getElementById('reset-confirm-password').value = '';
+        resetToStep1();
+        document.getElementById('forgotPasswordModal').classList.remove('hidden');
+    }
+
+    function closeForgotPasswordModal() {
+        document.getElementById('forgotPasswordModal').classList.add('hidden');
+    }
+
+    function resetToStep1() {
+        document.getElementById('otpStep1').classList.remove('hidden');
+        document.getElementById('otpStep2').classList.add('hidden');
+        document.getElementById('otpSubtitle').innerText = "Enter your registered Gmail address to receive a 6-digit OTP verification code.";
+        document.getElementById('forgotAlertBox').classList.add('hidden');
+    }
+
+    function toggleResetPassword(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.innerText = 'visibility';
+        } else {
+            input.type = 'password';
+            icon.innerText = 'visibility_off';
+        }
+    }
+
+    function showForgotAlert(message, isError = true) {
+        const alertBox = document.getElementById('forgotAlertBox');
+        alertBox.classList.remove('hidden', 'bg-red-50', 'border-red-200', 'text-red-700', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+        if (isError) {
+            alertBox.classList.add('bg-red-50', 'border', 'border-red-200', 'text-red-700');
+            alertBox.innerHTML = `<span class="material-symbols-outlined text-red-600 shrink-0 text-base">error</span><div>${message}</div>`;
+        } else {
+            alertBox.classList.add('bg-emerald-50', 'border', 'border-emerald-200', 'text-emerald-800');
+            alertBox.innerHTML = `<span class="material-symbols-outlined text-emerald-600 shrink-0 text-base">check_circle</span><div>${message}</div>`;
+        }
+    }
+
+    // EmailJS Configuration (Optional for Real 6-Digit Verification Email Delivery to Gmail)
+    const EMAILJS_CONFIG = {
+        publicKey: "",   // Put EmailJS Public Key here to send real OTP emails
+        serviceId: "",   // Put EmailJS Service ID here
+        templateId: ""   // Put EmailJS Template ID here
+    };
+
+    function handleSendVerificationCode() {
+        const inputVal = document.getElementById('reset-identity').value.trim();
+        if (!inputVal) {
+            showForgotAlert('Please enter your registered Gmail address or username.', true);
+            return;
+        }
+
+        const user = DB.findUserByIdentity(inputVal);
+        if (!user) {
+            showForgotAlert('No account found matching that Gmail address or username.', true);
+            return;
+        }
+
+        const sendBtn = document.getElementById('sendVerificationBtn');
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-xs">progress_activity</span> Sending Code...';
+
+        // Generate 6-digit verification code
+        activeOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        targetOtpUser = user;
+
+        // 1. Dispatch Firebase Auth Password Reset Email to user's Gmail
+        if (user.email && user.email.includes('@')) {
+            DB.sendFirebasePasswordResetEmail(user.email).catch(err => console.warn("Firebase email error:", err));
+        }
+
+        // 2. Dispatch EmailJS email if configured
+        if (EMAILJS_CONFIG.publicKey && EMAILJS_CONFIG.serviceId && EMAILJS_CONFIG.templateId && typeof emailjs !== 'undefined') {
+            try {
+                emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+                    to_email: user.email,
+                    to_name: user.full_name || user.username,
+                    otp_code: activeOtpCode
+                }, EMAILJS_CONFIG.publicKey).catch(err => console.warn("EmailJS error:", err));
+            } catch (e) {
+                console.warn("EmailJS error:", e);
+            }
+        }
+
+        // 3. Display Gmail Verification Toast Notification
+        const toast = document.getElementById('otpSimulationToast');
+        const toastMsg = document.getElementById('otpSimulationMsg');
+        toastMsg.innerHTML = `Verification email sent to <strong>${user.email}</strong>.<br>Verification Code: <strong class="text-navy-900 text-sm tracking-widest bg-gold-200 px-2 py-0.5 rounded font-black">${activeOtpCode}</strong>`;
+        toast.classList.remove('hidden');
+
+        // 4. Transition smoothly to Step 2
+        setTimeout(() => {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<span class="material-symbols-outlined text-sm">mark_email_read</span><span>Send Verification Code</span>';
+            document.getElementById('otpStep1').classList.add('hidden');
+            document.getElementById('otpStep2').classList.remove('hidden');
+            document.getElementById('otpSubtitle').innerText = `Verification code sent to ${user.email}. Enter code below to reset password.`;
+            document.getElementById('forgotAlertBox').classList.add('hidden');
+        }, 400);
+    }
+
+    function handleVerifyOTPAndReset() {
+        const inputOtp = document.getElementById('reset-otp-input').value.trim();
+        const newPwd = document.getElementById('reset-new-password').value;
+        const confirmPwd = document.getElementById('reset-confirm-password').value;
+
+        if (inputOtp !== activeOtpCode) {
+            showForgotAlert('Invalid OTP code. Please check the simulated inbox banner above.', true);
+            return;
+        }
+
+        if (!newPwd || newPwd.length < 8) {
+            showForgotAlert('New password must be at least 8 characters long.', true);
+            return;
+        }
+
+        if (newPwd !== confirmPwd) {
+            showForgotAlert('New passwords do not match.', true);
+            return;
+        }
+
+        const res = DB.resetPasswordDirect(targetOtpUser.id, newPwd);
+        if (res.success) {
+            showForgotAlert('Password reset successfully! Redirecting to login...', false);
+            setTimeout(() => {
+                closeForgotPasswordModal();
+                showAlert('Password updated successfully! Please log in with your new password.', false);
+            }, 1500);
+        } else {
+            showForgotAlert(res.error, true);
+        }
+    }
+</script>
+</body>
+</html>
